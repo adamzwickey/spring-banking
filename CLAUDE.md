@@ -8,23 +8,17 @@ Spring Banking is a sample banking application built with Spring Boot 3.2.12. It
 
 ## Build & Run Commands
 
-Both Maven and Gradle are supported. Java 17+ is required.
+Maven is the build system. Java 17+ is required.
 
-### Maven (primary, used in CI)
 - **Build & test:** `./mvnw -B verify`
 - **Run app:** `./mvnw spring-boot:run`
 - **Build container image:** `./mvnw spring-boot:build-image`
 - **Compile CSS (SCSS changes):** `./mvnw package -P css`
 - **Run a single test class:** `./mvnw -Dtest=ClassName test`
 
-### Gradle
-- **Build & test:** `./gradlew build`
-- **Run app:** `./gradlew bootRun`
-- **Run a single test class:** `./gradlew test --tests "org.springframework.samples.banking.ClassName"`
-
 ## Code Formatting & Linting
 
-The project enforces **Spring Java Format** (v0.0.47) and **Checkstyle** (v12.3.1). Formatting is validated during the Maven `validate` phase and in the Gradle build. The `nohttp` checkstyle rule ensures no plain `http://` URLs leak into source files.
+The project enforces **Spring Java Format** (v0.0.47) and **Checkstyle** (v12.3.1). Formatting is validated during the Maven `validate` phase. The `nohttp` checkstyle rule ensures no plain `http://` URLs leak into source files.
 
 - Format check runs automatically on build. Fix violations before committing.
 - Use tabs for indentation (per `.editorconfig`).

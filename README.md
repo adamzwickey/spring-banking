@@ -1,145 +1,142 @@
-# Spring Banking Sample Application
+# GKE MCP Server and Gemini CLI Extension
 
-## Understanding the Spring Banking application
+Enable MCP-compatible AI agents to interact with Google Kubernetes Engine.
 
-Spring Banking is a sample banking application demonstrating modern Spring Boot development practices and enterprise application patterns.
+<img src="https://raw.githubusercontent.com/GoogleCloudPlatform/gke-mcp/main/assets/gke-mcp-gemini-cli-demo.gif" alt="A demonstration of using the GKE MCP server with the Gemini CLI" width="600">
 
-## Run Spring Banking locally
+## Installation
 
-Spring Banking is a [Spring Boot](https://spring.io/guides/gs/spring-boot) application built using [Maven](https://spring.io/guides/gs/maven/) or [Gradle](https://spring.io/guides/gs/gradle/).
-Java 17 or later is required for the build, and the application can run with Java 17 or newer.
+Choose a way to install the MCP Server and then connect your AI to it.
 
-You first need to clone the project locally:
+### Use as a Gemini CLI Extension
 
-```bash
-git clone <repository-url>
-cd spring-banking
-```
-If you are using Maven, you can start the application on the command-line as follows:
+1. Install [Gemini CLI](https://github.com/google-gemini/gemini-cli?tab=readme-ov-file#-installation).
 
-```bash
-./mvnw spring-boot:run
-```
-With Gradle, the command is as follows:
+2. Install the extension
 
-```bash
-./gradlew bootRun
+```sh
+gemini extensions install https://github.com/GoogleCloudPlatform/gke-mcp.git
 ```
 
-You can then access Spring Banking at <http://localhost:8080/>.
+### Use in MCP Clients / Other AIs
 
-You can, of course, run Spring Banking in your favorite IDE.
-See below for more details.
+#### Quick Install (Linux & macOS only)
 
-## Building a Container
-
-There is no `Dockerfile` in this project. You can build a container image (if you have a docker daemon) using the Spring Boot build plugin:
-
-```bash
-./mvnw spring-boot:build-image
+```sh
+curl -sSL https://raw.githubusercontent.com/GoogleCloudPlatform/gke-mcp/main/install.sh | bash
 ```
 
-## In case you find a bug/suggested improvement for Spring Banking
+#### Manual Install
 
-Please report issues through your project's issue tracker.
+If you haven't already installed Go, follow [these instructions](https://go.dev/doc/install).
 
-## Database configuration
+Once Go is installed, run the following command to install gke-mcp:
 
-In its default configuration, Spring Banking uses an in-memory database (H2) which
-gets populated at startup with data. The h2 console is exposed at `http://localhost:8080/h2-console`,
-and it is possible to inspect the content of the database using the `jdbc:h2:mem:<uuid>` URL. The UUID is printed at startup to the console.
-
-A similar setup is provided for MySQL and PostgreSQL if a persistent database configuration is needed. Note that whenever the database type changes, the app needs to run with a different profile: `spring.profiles.active=mysql` for MySQL or `spring.profiles.active=postgres` for PostgreSQL. See the [Spring Boot documentation](https://docs.spring.io/spring-boot/how-to/properties-and-configuration.html#howto.properties-and-configuration.set-active-spring-profiles) for more detail on how to set the active profile.
-
-You can start MySQL or PostgreSQL locally with whatever installer works for your OS or use docker:
-
-```bash
-docker run -e MYSQL_USER=banking -e MYSQL_PASSWORD=banking -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=banking -p 3306:3306 mysql:9.6
+```sh
+go install github.com/GoogleCloudPlatform/gke-mcp@latest
 ```
 
-or
+The `gke-mcp` binary will be installed in the directory specified by the `GOBIN` environment variable. If `GOBIN` is not set, it defaults to `$GOPATH/bin` and, if `GOPATH` is also not set, it falls back to `$HOME/go/bin`.
 
-```bash
-docker run -e POSTGRES_USER=banking -e POSTGRES_PASSWORD=banking -e POSTGRES_DB=banking -p 5432:5432 postgres:18.3
+You can find the exact location by running `go env GOBIN`. If the command returns an empty value, run `go env GOPATH` to find the installation directory.
+
+For additional help, refer to the troubleshoot section: [gke-mcp: command not found](TROUBLESHOOTING.md#gke-mcp-command-not-found-on-macos-or-linux).
+
+### Add the MCP Server to your AI
+
+For detailed instructions on how to connect the GKE MCP Server to various AI clients, including cursor, Visual Studio Code, and claude desktop, please refer to our dedicated [installation guide](docs/installation_guide/).
+
+## MCP Tools
+
+- `cluster_toolkit`: Creates AI optimized GKE Clusters.
+- `list_clusters`: List your GKE clusters.
+- `get_cluster`: Get detailed about a single GKE Cluster.
+- `create_cluster`: Create a new GKE Cluster.
+- `get_kubeconfig`: Config the kubeconfig to a single GKE Cluster.
+- `giq_generate_manifest`: Generate a GKE manifest for AI/ML inference workloads using Google Inference Quickstart.
+- `list_recommendations`: List recommendations for your GKE clusters.
+- `query_logs`: Query Google Cloud Platform logs using Logging Query Language (LQL).
+- `get_log_schema`: Get the schema for a specific GKE log type.
+
+## MCP Commands
+
+Commands provide in-context domain specific functionality based on expert knowledge and best practices.
+
+- `gke-upgrade-risk-report`: GKE control plane upgrade risk report, analyzing the potential risks of upgrading from its current version to the target version. Performs pre-upgrade checks, API deprecations scans, and more.
+- `gke-upgrades-best-practices-risk-report`: GKE control plane upgrade best practices, applied for the specified cluster. Helps making upgrades uneventful.
+
+## MCP Context
+
+In addition to the tools above, a lot of value is provided through the bundled context instructions.
+
+- **Cost**: The provided instructions allows the AI to answer many questions related to GKE costs, including queries related to clusters, namespaces, and Kubernetes workloads.
+
+- **GKE Known Issues**: The provided instructions allows the AI to fetch the latest GKE Known issues and check whether the cluster is affected by one of these known issues.
+
+## Supported MCP Transports
+
+By default, `gke-mcp` uses the [stdio]("https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#stdio") transport. Additionally, the [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http) transport is supported as well.
+
+You can set the transport mode using the following options:
+
+`--server-mode`: transport to use for the server: stdio (default) or http
+
+`--server-port`: server port to use when server-mode is http or sse; defaults to 8080
+
+```sh
+gke-mcp --server-mode http --server-port 8080
 ```
 
-Further documentation is provided for MySQL and PostgreSQL in the `src/main/resources/db` directory.
+> [!WARNING]
+> When using the `Streamable HTTP` transport, the server listens on all network interfaces (e.g., `0.0.0.0`), which can expose it to any network your machine is connected to.
+> Please ensure you have a firewall ad/or other security measures in place to restrict access if the server is not intended to be public.
 
-Instead of vanilla `docker` you can also use the provided `docker-compose.yml` file to start the database containers. Each one has a service named after the Spring profile:
+### Connecting Gemini CLI to the HTTP Server
 
-```bash
-docker compose up mysql
+To connect Gemini CLI to the `gke-mcp` HTTP server, you need to configure the CLI to point to the correct endpoint. You can do this by updating your `~/.gemini/settings.json` file. For a basic setup without authentication, the file should look like this:
+
+```json
+{
+  "mcpServers": {
+    "gke": {
+      "httpUrl": "http://127.0.0.1:8080/mcp"
+    }
+  }
+}
 ```
 
-or
+This configuration tells Gemini CLI how to reach the gke-mcp server running on your local machine at port 8080.
 
-```bash
-docker compose up postgres
-```
+## Development
 
-## Test Applications
+To compile the binary and update the `gemini-cli` extension with your local changes, follow these steps:
 
-At development time we recommend you use the test applications set up as `main()` methods in `PetClinicIntegrationTests` (using the default H2 database and also adding Spring Boot Devtools), `MySqlTestApplication` and `PostgresIntegrationTests`. These are set up so that you can run the apps in your IDE to get fast feedback and also run the same classes as integration tests against the respective database. The MySql integration tests use Testcontainers to start the database in a Docker container, and the Postgres tests use Docker Compose to do the same thing.
+1. Remove the global gke-mcp configuration
 
-## Compiling the CSS
+   ```sh
+   rm -rf ~/.gemini/extensions/gke-mcp
+   ```
 
-There is a `petclinic.css` in `src/main/resources/static/resources/css`. It was generated from the `petclinic.scss` source, combined with the [Bootstrap](https://getbootstrap.com/) library. If you make changes to the `scss`, or upgrade Bootstrap, you will need to re-compile the CSS resources using the Maven profile "css", i.e. `./mvnw package -P css`. There is no build profile for Gradle to compile the CSS.
+1. Build the binary from the root of the project:
 
-## Working with Spring Banking in your IDE
+   ```sh
+   go build -o gke-mcp .
+   ```
 
-### Prerequisites
+1. Run the installation command to update the extension manifest:
 
-The following items should be installed in your system:
+   ```sh
+   ./gke-mcp install gemini-cli --developer
+   ```
 
-- Java 17 or newer (full JDK, not a JRE)
-- [Git command line tool](https://help.github.com/articles/set-up-git)
-- Your preferred IDE
-  - Eclipse with the m2e plugin. Note: when m2e is available, there is a m2 icon in `Help -> About` dialog. If m2e is
-  not there, follow the installation process [here](https://www.eclipse.org/m2e/)
-  - [Spring Tools Suite](https://spring.io/tools) (STS)
-  - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
-  - [VS Code](https://code.visualstudio.com)
+   This will make `gemini-cli` use your locally compiled binary.
 
-### Steps
+## Disclaimers
 
-1. On the command line run:
-
-    ```bash
-    git clone https://github.com/spring-projects/spring-petclinic.git
-    ```
-
-1. Inside Eclipse or STS:
-
-    Open the project via `File -> Import -> Maven -> Existing Maven project`, then select the root directory of the cloned repo.
-
-    Then either build on the command line `./mvnw generate-resources` or use the Eclipse launcher (right-click on project and `Run As -> Maven install`) to generate the CSS. Run the application's main method by right-clicking on it and choosing `Run As -> Java Application`.
-
-1. Inside IntelliJ IDEA:
-
-    In the main menu, choose `File -> Open` and select the Petclinic [pom.xml](pom.xml). Click on the `Open` button.
-
-    - CSS files are generated from the Maven build. You can build them on the command line `./mvnw generate-resources` or right-click on the `spring-petclinic` project then `Maven -> Generates sources and Update Folders`.
-
-    - A run configuration named `PetClinicApplication` should have been created for you if you're using a recent Ultimate version. Otherwise, run the application by right-clicking on the `PetClinicApplication` main class and choosing `Run 'PetClinicApplication'`.
-
-1. Navigate to the Petclinic
-
-    Visit [http://localhost:8080](http://localhost:8080) in your browser.
-
-## Looking for something in particular?
-
-|Spring Boot Configuration | Class or Java property files  |
-|--------------------------|---|
-|The Main Class | [PetClinicApplication](src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java) |
-|Properties Files | [application.properties](src/main/resources) |
-|Caching | [CacheConfiguration](src/main/java/org/springframework/samples/petclinic/system/CacheConfiguration.java) |
-
-## Contributing
-
-The issue tracker is the preferred channel for bug reports, feature requests and submitting pull requests.
-
-For pull requests, editor preferences are available in the [editor config](.editorconfig) for easy use in common text editors. Read more and download plugins at <https://editorconfig.org>.
-
-## License
-
-The Spring Banking sample application is released under version 2.0 of the [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
+- The Google Cloud Platform Terms of Service (available at [https://cloud.google.com/terms/](https://cloud.google.com/terms/)) and the Data Processing and Security Terms (available at [https://cloud.google.com/terms/data-processing-terms](https://cloud.google.com/terms/data-processing-terms)) do not apply to any component of the GKE MCP Server software.
+- This tool is provided for education and experimentation, and is not an officially supported Google product. It is maintained on a best-effort basis, and may change without notice.
+- This project interacts with Large Language Models and comes with inherent risks.
+  - **Use at Your Own Risk:** This software is experimental, non-deterministic, and provided "AS IS" with NO GUARANTEES or warranties.
+  - **NOT FOR PRODUCTION USE.**
+  - **Data Sensitivity:** Avoid using untrusted data. NEVER input secrets, API keys, or sensitive information.
+  - **Verify Outputs:** LLM responses can be unpredictable and may be inaccurate. Always verify results.

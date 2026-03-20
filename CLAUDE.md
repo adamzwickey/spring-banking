@@ -63,3 +63,12 @@ The project enforces **Spring Java Format** (v0.0.47) and **Checkstyle** (v12.3.
 
 - Raw K8s manifests in `k8s/` (postgres-backed deployment with service bindings)
 - Helm chart in `helm/banking/` for templated deployment with a PostgreSQL sidecar
+
+# JIRA Instructions
+I am abz-test
+My projects are found at abz-test.atlassian.net
+
+# GKE-MCP Server Instructions
+ - @/Users/azwickey/Downloads/ant/spring-banking/GKE_MCP_USAGE_GUIDE.md
+# GKE-MCP Server Instructions
+ - @/Users/azwickey/Downloads/ant/spring-banking/GKE_MCP_USAGE_GUIDE.md

@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
-import org.springframework.samples.petclinic.model.NamedEntity;
+import org.springframework.samples.banking.model.NamedEntity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * @author Juergen Hoeller Can be Cat, Dog, Hamster...
+ * Account types: Checking, Savings, Money Market, CD.
  */
 @Entity
-@Table(name = "types")
-public class PetType extends NamedEntity {
+@Table(name = "account_types")
+public class AccountType extends NamedEntity {
 
 }

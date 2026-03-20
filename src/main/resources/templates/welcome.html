@@ -5,9 +5,298 @@
 <body>
 
   <h2 th:text="#{welcome}">Welcome</h2>
+
+  <style>
+    .market-ticker {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding: 0.5rem 0 1rem;
+    }
+    .ticker-card {
+      min-width: 180px;
+      flex: 1;
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      border: 1px solid #e9ecef;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .ticker-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .ticker-symbol {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    .ticker-name {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-bottom: 0.5rem;
+    }
+    .ticker-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .ticker-change {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+    .ticker-change.up { color: #16a34a; }
+    .ticker-change.down { color: #dc2626; }
+    .mini-chart {
+      margin-top: 0.5rem;
+    }
+    .summary-card {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      border-radius: 16px;
+      padding: 2rem;
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+    .summary-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+    .summary-card .big-number {
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .summary-card .badge-up {
+      background: rgba(22,163,74,0.15);
+      color: #4ade80;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .summary-card .badge-down {
+      background: rgba(220,38,38,0.15);
+      color: #f87171;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    .news-item {
+      border-left: 3px solid #4f46e5;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      background: #f8fafc;
+      border-radius: 0 8px 8px 0;
+    }
+    .news-item .news-time {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+    .news-item .news-headline {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section-title .fa {
+      color: #4f46e5;
+    }
+  </style>
+
+  <!-- Market Summary Hero -->
+  <div class="summary-card">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h3>S&amp;P 500</h3>
+        <div class="big-number">5,667.56</div>
+        <div class="mt-2">
+          <span class="badge-up">&#9650; 1.24% (+69.36)</span>
+          <span style="color: #64748b; font-size: 0.8rem; margin-left: 0.5rem;">As of Mar 20, 2026 4:00 PM ET</span>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="row text-center mt-3 mt-md-0">
+          <div class="col-4">
+            <div class="stat-label">Open</div>
+            <div class="stat-value">5,612.40</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-label">Day High</div>
+            <div class="stat-value">5,674.18</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-label">Day Low</div>
+            <div class="stat-value">5,598.22</div>
+          </div>
+          <div class="col-4 mt-3">
+            <div class="stat-label">52W High</div>
+            <div class="stat-value">6,144.15</div>
+          </div>
+          <div class="col-4 mt-3">
+            <div class="stat-label">52W Low</div>
+            <div class="stat-value">4,953.56</div>
+          </div>
+          <div class="col-4 mt-3">
+            <div class="stat-label">Volume</div>
+            <div class="stat-value">3.82B</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Index Tickers -->
+  <div class="section-title"><span class="fa fa-line-chart"></span> Major Indices</div>
+  <div class="market-ticker mb-4">
+    <div class="ticker-card">
+      <div class="ticker-symbol">DJIA</div>
+      <div class="ticker-name">Dow Jones Industrial</div>
+      <div class="ticker-price">41,985.35</div>
+      <div class="ticker-change up">&#9650; 0.92% (+383.32)</div>
+      <svg class="mini-chart" width="100%" height="40" viewBox="0 0 150 40" preserveAspectRatio="none">
+        <polyline points="0,32 15,28 30,30 45,22 60,20 75,18 90,22 105,15 120,12 135,10 150,8" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,32 15,28 30,30 45,22 60,20 75,18 90,22 105,15 120,12 135,10 150,8 150,40 0,40" fill="url(#greenFade)" stroke="none"/>
+        <defs><linearGradient id="greenFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16a34a" stop-opacity="0.2"/><stop offset="100%" stop-color="#16a34a" stop-opacity="0"/></linearGradient></defs>
+      </svg>
+    </div>
+    <div class="ticker-card">
+      <div class="ticker-symbol">NASDAQ</div>
+      <div class="ticker-name">Nasdaq Composite</div>
+      <div class="ticker-price">17,784.05</div>
+      <div class="ticker-change up">&#9650; 1.67% (+291.48)</div>
+      <svg class="mini-chart" width="100%" height="40" viewBox="0 0 150 40" preserveAspectRatio="none">
+        <polyline points="0,28 15,30 30,26 45,18 60,22 75,16 90,14 105,18 120,10 135,6 150,4" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,28 15,30 30,26 45,18 60,22 75,16 90,14 105,18 120,10 135,6 150,4 150,40 0,40" fill="url(#greenFade)" stroke="none"/>
+      </svg>
+    </div>
+    <div class="ticker-card">
+      <div class="ticker-symbol">RUT</div>
+      <div class="ticker-name">Russell 2000</div>
+      <div class="ticker-price">2,056.12</div>
+      <div class="ticker-change down">&#9660; 0.31% (-6.42)</div>
+      <svg class="mini-chart" width="100%" height="40" viewBox="0 0 150 40" preserveAspectRatio="none">
+        <polyline points="0,10 15,12 30,14 45,18 60,16 75,20 90,24 105,22 120,28 135,30 150,32" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,10 15,12 30,14 45,18 60,16 75,20 90,24 105,22 120,28 135,30 150,32 150,40 0,40" fill="url(#redFade)" stroke="none"/>
+        <defs><linearGradient id="redFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dc2626" stop-opacity="0.15"/><stop offset="100%" stop-color="#dc2626" stop-opacity="0"/></linearGradient></defs>
+      </svg>
+    </div>
+    <div class="ticker-card">
+      <div class="ticker-symbol">VIX</div>
+      <div class="ticker-name">Volatility Index</div>
+      <div class="ticker-price">19.28</div>
+      <div class="ticker-change down">&#9660; 5.12% (-1.04)</div>
+      <svg class="mini-chart" width="100%" height="40" viewBox="0 0 150 40" preserveAspectRatio="none">
+        <polyline points="0,8 15,14 30,10 45,20 60,16 75,22 90,18 105,26 120,24 135,30 150,32" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,8 15,14 30,10 45,20 60,16 75,22 90,18 105,26 120,24 135,30 150,32 150,40 0,40" fill="url(#redFade)" stroke="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Top Movers & News -->
   <div class="row">
-    <div class="col-md-12">
-      <img class="img-responsive" src="../static/resources/images/pets.png" th:src="@{/resources/images/pets.png}" />
+    <div class="col-md-7">
+      <div class="section-title"><span class="fa fa-bolt"></span> Top Movers</div>
+      <div class="table-responsive">
+        <table class="table table-hover" style="font-size: 0.9rem;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e2e8f0;">
+              <th style="color: #64748b; font-weight: 600;">Symbol</th>
+              <th style="color: #64748b; font-weight: 600;">Company</th>
+              <th style="color: #64748b; font-weight: 600;" class="text-end">Price</th>
+              <th style="color: #64748b; font-weight: 600;" class="text-end">Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>NVDA</strong></td>
+              <td class="text-muted">NVIDIA Corp</td>
+              <td class="text-end fw-bold">$131.28</td>
+              <td class="text-end"><span class="ticker-change up">&#9650; 4.82%</span></td>
+            </tr>
+            <tr>
+              <td><strong>TSLA</strong></td>
+              <td class="text-muted">Tesla Inc</td>
+              <td class="text-end fw-bold">$248.71</td>
+              <td class="text-end"><span class="ticker-change up">&#9650; 3.45%</span></td>
+            </tr>
+            <tr>
+              <td><strong>AAPL</strong></td>
+              <td class="text-muted">Apple Inc</td>
+              <td class="text-end fw-bold">$214.07</td>
+              <td class="text-end"><span class="ticker-change up">&#9650; 1.18%</span></td>
+            </tr>
+            <tr>
+              <td><strong>MSFT</strong></td>
+              <td class="text-muted">Microsoft Corp</td>
+              <td class="text-end fw-bold">$388.45</td>
+              <td class="text-end"><span class="ticker-change up">&#9650; 0.94%</span></td>
+            </tr>
+            <tr>
+              <td><strong>JPM</strong></td>
+              <td class="text-muted">JPMorgan Chase</td>
+              <td class="text-end fw-bold">$237.82</td>
+              <td class="text-end"><span class="ticker-change down">&#9660; 0.67%</span></td>
+            </tr>
+            <tr>
+              <td><strong>JNJ</strong></td>
+              <td class="text-muted">Johnson &amp; Johnson</td>
+              <td class="text-end fw-bold">$155.13</td>
+              <td class="text-end"><span class="ticker-change down">&#9660; 1.22%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="section-title"><span class="fa fa-newspaper-o"></span> Market News</div>
+      <div class="news-item">
+        <div class="news-time">2:45 PM ET</div>
+        <p class="news-headline">Fed holds rates steady, signals potential cut in June amid cooling inflation</p>
+      </div>
+      <div class="news-item" style="border-left-color: #16a34a;">
+        <div class="news-time">1:12 PM ET</div>
+        <p class="news-headline">NVIDIA surges on record data center revenue, AI demand continues to accelerate</p>
+      </div>
+      <div class="news-item" style="border-left-color: #f59e0b;">
+        <div class="news-time">11:30 AM ET</div>
+        <p class="news-headline">Treasury yields dip as investors digest employment data ahead of Fed meeting</p>
+      </div>
+      <div class="news-item" style="border-left-color: #dc2626;">
+        <div class="news-time">9:45 AM ET</div>
+        <p class="news-headline">Oil prices fall 2% as OPEC+ considers increasing output amid slowing demand</p>
+      </div>
+      <div class="news-item">
+        <div class="news-time">8:30 AM ET</div>
+        <p class="news-headline">Weekly jobless claims fall to 215,000, beating economist estimates of 225,000</p>
+      </div>
     </div>
   </div>
 

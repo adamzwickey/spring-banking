@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -38,145 +38,136 @@ import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * @author Juergen Hoeller
- * @author Ken Krebs
- * @author Arjen Poutsma
- * @author Wick Dynex
+ * Controller for account operations.
  */
 @Controller
-@RequestMapping("/owners/{ownerId}")
-class PetController {
+@RequestMapping("/customers/{customerId}")
+class AccountController {
 
-	private static final String VIEWS_PETS_CREATE_OR_UPDATE_FORM = "pets/createOrUpdatePetForm";
+	private static final String VIEWS_ACCOUNTS_CREATE_OR_UPDATE_FORM = "accounts/createOrUpdateAccountForm";
 
-	private final OwnerRepository owners;
+	private final CustomerRepository customers;
 
-	private final PetTypeRepository types;
+	private final AccountTypeRepository types;
 
-	public PetController(OwnerRepository owners, PetTypeRepository types) {
-		this.owners = owners;
+	public AccountController(CustomerRepository customers, AccountTypeRepository types) {
+		this.customers = customers;
 		this.types = types;
 	}
 
 	@ModelAttribute("types")
-	public Collection<PetType> populatePetTypes() {
-		return this.types.findPetTypes();
+	public Collection<AccountType> populateAccountTypes() {
+		return this.types.findAccountTypes();
 	}
 
-	@ModelAttribute("owner")
-	public Owner findOwner(@PathVariable("ownerId") int ownerId) {
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-		return owner;
+	@ModelAttribute("customer")
+	public Customer findCustomer(@PathVariable("customerId") int customerId) {
+		Optional<Customer> optionalCustomer = this.customers.findById(customerId);
+		Customer customer = optionalCustomer.orElseThrow(() -> new IllegalArgumentException(
+				"Customer not found with id: " + customerId + ". Please ensure the ID is correct "));
+		return customer;
 	}
 
-	@ModelAttribute("pet")
-	public Pet findPet(@PathVariable("ownerId") int ownerId,
-			@PathVariable(name = "petId", required = false) Integer petId) {
+	@ModelAttribute("account")
+	public Account findAccount(@PathVariable("customerId") int customerId,
+			@PathVariable(name = "accountId", required = false) Integer accountId) {
 
-		if (petId == null) {
-			return new Pet();
+		if (accountId == null) {
+			return new Account();
 		}
 
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-		return owner.getPet(petId);
+		Optional<Customer> optionalCustomer = this.customers.findById(customerId);
+		Customer customer = optionalCustomer.orElseThrow(() -> new IllegalArgumentException(
+				"Customer not found with id: " + customerId + ". Please ensure the ID is correct "));
+		return customer.getAccount(accountId);
 	}
 
-	@InitBinder("owner")
-	public void initOwnerBinder(WebDataBinder dataBinder) {
+	@InitBinder("customer")
+	public void initCustomerBinder(WebDataBinder dataBinder) {
 		dataBinder.setDisallowedFields("id");
 	}
 
-	@InitBinder("pet")
-	public void initPetBinder(WebDataBinder dataBinder) {
-		dataBinder.setValidator(new PetValidator());
+	@InitBinder("account")
+	public void initAccountBinder(WebDataBinder dataBinder) {
+		dataBinder.setValidator(new AccountValidator());
 	}
 
-	@GetMapping("/pets/new")
-	public String initCreationForm(Owner owner, ModelMap model) {
-		Pet pet = new Pet();
-		owner.addPet(pet);
-		return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+	@GetMapping("/accounts/new")
+	public String initCreationForm(Customer customer, ModelMap model) {
+		Account account = new Account();
+		customer.addAccount(account);
+		return VIEWS_ACCOUNTS_CREATE_OR_UPDATE_FORM;
 	}
 
-	@PostMapping("/pets/new")
-	public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result,
+	@PostMapping("/accounts/new")
+	public String processCreationForm(Customer customer, @Valid Account account, BindingResult result,
 			RedirectAttributes redirectAttributes) {
 
-		if (StringUtils.hasText(pet.getName()) && pet.isNew() && owner.getPet(pet.getName(), true) != null) {
-			result.rejectValue("name", "duplicate", "already exists");
+		if (StringUtils.hasText(account.getAccountNumber()) && account.isNew()
+				&& customer.getAccount(account.getAccountNumber(), true) != null) {
+			result.rejectValue("accountNumber", "duplicate", "already exists");
 		}
 
 		LocalDate currentDate = LocalDate.now();
-		if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
-			result.rejectValue("birthDate", "typeMismatch.birthDate");
+		if (account.getOpenedDate() != null && account.getOpenedDate().isAfter(currentDate)) {
+			result.rejectValue("openedDate", "typeMismatch.openedDate");
 		}
 
 		if (result.hasErrors()) {
-			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+			return VIEWS_ACCOUNTS_CREATE_OR_UPDATE_FORM;
 		}
 
-		owner.addPet(pet);
-		this.owners.save(owner);
-		redirectAttributes.addFlashAttribute("message", "New Pet has been Added");
-		return "redirect:/owners/{ownerId}";
+		customer.addAccount(account);
+		this.customers.save(customer);
+		redirectAttributes.addFlashAttribute("message", "New Account has been Added");
+		return "redirect:/customers/{customerId}";
 	}
 
-	@GetMapping("/pets/{petId}/edit")
+	@GetMapping("/accounts/{accountId}/edit")
 	public String initUpdateForm() {
-		return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+		return VIEWS_ACCOUNTS_CREATE_OR_UPDATE_FORM;
 	}
 
-	@PostMapping("/pets/{petId}/edit")
-	public String processUpdateForm(Owner owner, @Valid Pet pet, BindingResult result,
+	@PostMapping("/accounts/{accountId}/edit")
+	public String processUpdateForm(Customer customer, @Valid Account account, BindingResult result,
 			RedirectAttributes redirectAttributes) {
 
-		String petName = pet.getName();
+		String accountNumber = account.getAccountNumber();
 
-		// checking if the pet name already exists for the owner
-		if (StringUtils.hasText(petName)) {
-			Pet existingPet = owner.getPet(petName, false);
-			if (existingPet != null && !Objects.equals(existingPet.getId(), pet.getId())) {
-				result.rejectValue("name", "duplicate", "already exists");
+		if (StringUtils.hasText(accountNumber)) {
+			Account existingAccount = customer.getAccount(accountNumber, false);
+			if (existingAccount != null && !Objects.equals(existingAccount.getId(), account.getId())) {
+				result.rejectValue("accountNumber", "duplicate", "already exists");
 			}
 		}
 
 		LocalDate currentDate = LocalDate.now();
-		if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
-			result.rejectValue("birthDate", "typeMismatch.birthDate");
+		if (account.getOpenedDate() != null && account.getOpenedDate().isAfter(currentDate)) {
+			result.rejectValue("openedDate", "typeMismatch.openedDate");
 		}
 
 		if (result.hasErrors()) {
-			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+			return VIEWS_ACCOUNTS_CREATE_OR_UPDATE_FORM;
 		}
 
-		updatePetDetails(owner, pet);
-		redirectAttributes.addFlashAttribute("message", "Pet details has been edited");
-		return "redirect:/owners/{ownerId}";
+		updateAccountDetails(customer, account);
+		redirectAttributes.addFlashAttribute("message", "Account details has been edited");
+		return "redirect:/customers/{customerId}";
 	}
 
-	/**
-	 * Updates the pet details if it exists or adds a new pet to the owner.
-	 * @param owner The owner of the pet
-	 * @param pet The pet with updated details
-	 */
-	private void updatePetDetails(Owner owner, Pet pet) {
-		Integer id = pet.getId();
-		Assert.state(id != null, "'pet.getId()' must not be null");
-		Pet existingPet = owner.getPet(id);
-		if (existingPet != null) {
-			// Update existing pet's properties
-			existingPet.setName(pet.getName());
-			existingPet.setBirthDate(pet.getBirthDate());
-			existingPet.setType(pet.getType());
+	private void updateAccountDetails(Customer customer, Account account) {
+		Integer id = account.getId();
+		Assert.state(id != null, "'account.getId()' must not be null");
+		Account existingAccount = customer.getAccount(id);
+		if (existingAccount != null) {
+			existingAccount.setAccountNumber(account.getAccountNumber());
+			existingAccount.setOpenedDate(account.getOpenedDate());
+			existingAccount.setType(account.getType());
 		}
 		else {
-			owner.addPet(pet);
+			customer.addAccount(account);
 		}
-		this.owners.save(owner);
+		this.customers.save(customer);
 	}
 
 }

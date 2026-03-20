@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -40,131 +40,131 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 /**
- * Test class for the {@link PetController}
- *
- * @author Colin But
- * @author Wick Dynex
+ * Test class for the {@link AccountController}
  */
-@WebMvcTest(value = PetController.class,
-		includeFilters = @ComponentScan.Filter(value = PetTypeFormatter.class, type = FilterType.ASSIGNABLE_TYPE))
+@WebMvcTest(value = AccountController.class,
+		includeFilters = @ComponentScan.Filter(value = AccountTypeFormatter.class, type = FilterType.ASSIGNABLE_TYPE))
 @DisabledInNativeImage
 @DisabledInAotMode
-class PetControllerTests {
+class AccountControllerTests {
 
-	private static final int TEST_OWNER_ID = 1;
+	private static final int TEST_CUSTOMER_ID = 1;
 
-	private static final int TEST_PET_ID = 1;
+	private static final int TEST_ACCOUNT_ID = 1;
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private OwnerRepository owners;
+	private CustomerRepository customers;
 
 	@MockitoBean
-	private PetTypeRepository types;
+	private AccountTypeRepository types;
 
 	@BeforeEach
 	void setup() {
-		PetType cat = new PetType();
-		cat.setId(3);
-		cat.setName("hamster");
-		given(this.types.findPetTypes()).willReturn(List.of(cat));
+		AccountType checking = new AccountType();
+		checking.setId(1);
+		checking.setName("Checking");
+		given(this.types.findAccountTypes()).willReturn(List.of(checking));
 
-		Owner owner = new Owner();
-		Pet pet = new Pet();
-		Pet dog = new Pet();
-		owner.addPet(pet);
-		owner.addPet(dog);
-		pet.setId(TEST_PET_ID);
-		dog.setId(TEST_PET_ID + 1);
-		pet.setName("petty");
-		dog.setName("doggy");
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
+		Customer customer = new Customer();
+		Account account = new Account();
+		Account savings = new Account();
+		customer.addAccount(account);
+		customer.addAccount(savings);
+		account.setId(TEST_ACCOUNT_ID);
+		savings.setId(TEST_ACCOUNT_ID + 1);
+		account.setAccountNumber("CHK-10001");
+		savings.setAccountNumber("SAV-10002");
+		given(this.customers.findById(TEST_CUSTOMER_ID)).willReturn(Optional.of(customer));
 	}
 
 	@Test
 	void initCreationForm() throws Exception {
-		mockMvc.perform(get("/owners/{ownerId}/pets/new", TEST_OWNER_ID))
+		mockMvc.perform(get("/customers/{customerId}/accounts/new", TEST_CUSTOMER_ID))
 			.andExpect(status().isOk())
-			.andExpect(view().name("pets/createOrUpdatePetForm"))
-			.andExpect(model().attributeExists("pet"));
+			.andExpect(view().name("accounts/createOrUpdateAccountForm"))
+			.andExpect(model().attributeExists("account"));
 	}
 
 	@Test
 	void processCreationFormSuccess() throws Exception {
 		mockMvc
-			.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "Betty")
-				.param("type", "hamster")
-				.param("birthDate", "2015-02-12"))
+			.perform(post("/customers/{customerId}/accounts/new", TEST_CUSTOMER_ID).param("accountNumber", "CHK-99999")
+				.param("type", "Checking")
+				.param("openedDate", "2015-02-12"))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(view().name("redirect:/owners/{ownerId}"));
+			.andExpect(view().name("redirect:/customers/{customerId}"));
 	}
 
 	@Nested
 	class ProcessCreationFormHasErrors {
 
 		@Test
-		void processCreationFormWithBlankName() throws Exception {
+		void processCreationFormWithBlankAccountNumber() throws Exception {
 			mockMvc
-				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "\t \n")
-					.param("birthDate", "2015-02-12"))
-				.andExpect(model().attributeHasNoErrors("owner"))
-				.andExpect(model().attributeHasErrors("pet"))
-				.andExpect(model().attributeHasFieldErrors("pet", "name"))
-				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "required"))
+				.perform(post("/customers/{customerId}/accounts/new", TEST_CUSTOMER_ID).param("accountNumber", "\t \n")
+					.param("openedDate", "2015-02-12"))
+				.andExpect(model().attributeHasNoErrors("customer"))
+				.andExpect(model().attributeHasErrors("account"))
+				.andExpect(model().attributeHasFieldErrors("account", "accountNumber"))
+				.andExpect(model().attributeHasFieldErrorCode("account", "accountNumber", "required"))
 				.andExpect(status().isOk())
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 		@Test
-		void processCreationFormWithDuplicateName() throws Exception {
+		void processCreationFormWithDuplicateAccountNumber() throws Exception {
 			mockMvc
-				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "petty")
-					.param("birthDate", "2015-02-12"))
-				.andExpect(model().attributeHasNoErrors("owner"))
-				.andExpect(model().attributeHasErrors("pet"))
-				.andExpect(model().attributeHasFieldErrors("pet", "name"))
-				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
+				.perform(post("/customers/{customerId}/accounts/new", TEST_CUSTOMER_ID)
+					.param("accountNumber", "CHK-10001")
+					.param("openedDate", "2015-02-12"))
+				.andExpect(model().attributeHasNoErrors("customer"))
+				.andExpect(model().attributeHasErrors("account"))
+				.andExpect(model().attributeHasFieldErrors("account", "accountNumber"))
+				.andExpect(model().attributeHasFieldErrorCode("account", "accountNumber", "duplicate"))
 				.andExpect(status().isOk())
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 		@Test
-		void processCreationFormWithMissingPetType() throws Exception {
+		void processCreationFormWithMissingAccountType() throws Exception {
 			mockMvc
-				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "Betty")
-					.param("birthDate", "2015-02-12"))
-				.andExpect(model().attributeHasNoErrors("owner"))
-				.andExpect(model().attributeHasErrors("pet"))
-				.andExpect(model().attributeHasFieldErrors("pet", "type"))
-				.andExpect(model().attributeHasFieldErrorCode("pet", "type", "required"))
+				.perform(post("/customers/{customerId}/accounts/new", TEST_CUSTOMER_ID)
+					.param("accountNumber", "CHK-99999")
+					.param("openedDate", "2015-02-12"))
+				.andExpect(model().attributeHasNoErrors("customer"))
+				.andExpect(model().attributeHasErrors("account"))
+				.andExpect(model().attributeHasFieldErrors("account", "type"))
+				.andExpect(model().attributeHasFieldErrorCode("account", "type", "required"))
 				.andExpect(status().isOk())
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 		@Test
-		void processCreationFormWithInvalidBirthDate() throws Exception {
+		void processCreationFormWithInvalidOpenedDate() throws Exception {
 			LocalDate currentDate = LocalDate.now();
-			String futureBirthDate = currentDate.plusMonths(1).toString();
+			String futureDate = currentDate.plusMonths(1).toString();
 
 			mockMvc
-				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "Betty")
-					.param("birthDate", futureBirthDate))
-				.andExpect(model().attributeHasNoErrors("owner"))
-				.andExpect(model().attributeHasErrors("pet"))
-				.andExpect(model().attributeHasFieldErrors("pet", "birthDate"))
-				.andExpect(model().attributeHasFieldErrorCode("pet", "birthDate", "typeMismatch.birthDate"))
+				.perform(post("/customers/{customerId}/accounts/new", TEST_CUSTOMER_ID)
+					.param("accountNumber", "CHK-99999")
+					.param("openedDate", futureDate))
+				.andExpect(model().attributeHasNoErrors("customer"))
+				.andExpect(model().attributeHasErrors("account"))
+				.andExpect(model().attributeHasFieldErrors("account", "openedDate"))
+				.andExpect(model().attributeHasFieldErrorCode("account", "openedDate", "typeMismatch.openedDate"))
 				.andExpect(status().isOk())
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 		@Test
 		void initUpdateForm() throws Exception {
-			mockMvc.perform(get("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID))
+			mockMvc.perform(get("/customers/{customerId}/accounts/{accountId}/edit", TEST_CUSTOMER_ID, TEST_ACCOUNT_ID))
 				.andExpect(status().isOk())
-				.andExpect(model().attributeExists("pet"))
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.andExpect(model().attributeExists("account"))
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 	}
@@ -172,38 +172,41 @@ class PetControllerTests {
 	@Test
 	void processUpdateFormSuccess() throws Exception {
 		mockMvc
-			.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID).param("name", "Betty")
-				.param("type", "hamster")
-				.param("birthDate", "2015-02-12"))
+			.perform(post("/customers/{customerId}/accounts/{accountId}/edit", TEST_CUSTOMER_ID, TEST_ACCOUNT_ID)
+				.param("accountNumber", "CHK-99999")
+				.param("type", "Checking")
+				.param("openedDate", "2015-02-12"))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(view().name("redirect:/owners/{ownerId}"));
+			.andExpect(view().name("redirect:/customers/{customerId}"));
 	}
 
 	@Nested
 	class ProcessUpdateFormHasErrors {
 
 		@Test
-		void processUpdateFormWithInvalidBirthDate() throws Exception {
+		void processUpdateFormWithInvalidOpenedDate() throws Exception {
 			mockMvc
-				.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID).param("name", " ")
-					.param("birthDate", "2015/02/12"))
-				.andExpect(model().attributeHasNoErrors("owner"))
-				.andExpect(model().attributeHasErrors("pet"))
-				.andExpect(model().attributeHasFieldErrors("pet", "birthDate"))
-				.andExpect(model().attributeHasFieldErrorCode("pet", "birthDate", "typeMismatch"))
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.perform(post("/customers/{customerId}/accounts/{accountId}/edit", TEST_CUSTOMER_ID, TEST_ACCOUNT_ID)
+					.param("accountNumber", " ")
+					.param("openedDate", "2015/02/12"))
+				.andExpect(model().attributeHasNoErrors("customer"))
+				.andExpect(model().attributeHasErrors("account"))
+				.andExpect(model().attributeHasFieldErrors("account", "openedDate"))
+				.andExpect(model().attributeHasFieldErrorCode("account", "openedDate", "typeMismatch"))
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 		@Test
-		void processUpdateFormWithBlankName() throws Exception {
+		void processUpdateFormWithBlankAccountNumber() throws Exception {
 			mockMvc
-				.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID).param("name", "  ")
-					.param("birthDate", "2015-02-12"))
-				.andExpect(model().attributeHasNoErrors("owner"))
-				.andExpect(model().attributeHasErrors("pet"))
-				.andExpect(model().attributeHasFieldErrors("pet", "name"))
-				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "required"))
-				.andExpect(view().name("pets/createOrUpdatePetForm"));
+				.perform(post("/customers/{customerId}/accounts/{accountId}/edit", TEST_CUSTOMER_ID, TEST_ACCOUNT_ID)
+					.param("accountNumber", "  ")
+					.param("openedDate", "2015-02-12"))
+				.andExpect(model().attributeHasNoErrors("customer"))
+				.andExpect(model().attributeHasErrors("account"))
+				.andExpect(model().attributeHasFieldErrors("account", "accountNumber"))
+				.andExpect(model().attributeHasFieldErrorCode("account", "accountNumber", "required"))
+				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
 		}
 
 	}

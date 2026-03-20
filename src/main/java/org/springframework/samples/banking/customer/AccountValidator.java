@@ -13,52 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 /**
- * <code>Validator</code> for <code>Pet</code> forms.
- * <p>
- * We're not using Bean Validation annotations here because it is easier to define such
- * validation rule in Java.
- * </p>
- *
- * @author Ken Krebs
- * @author Juergen Hoeller
+ * <code>Validator</code> for <code>Account</code> forms.
  */
-public class PetValidator implements Validator {
+public class AccountValidator implements Validator {
 
 	private static final String REQUIRED = "required";
 
 	@Override
 	public void validate(Object obj, Errors errors) {
-		Pet pet = (Pet) obj;
-		String name = pet.getName();
-		// name validation
-		if (!StringUtils.hasText(name)) {
-			errors.rejectValue("name", REQUIRED, REQUIRED);
+		Account account = (Account) obj;
+		String accountNumber = account.getAccountNumber();
+		// account number validation
+		if (!StringUtils.hasText(accountNumber)) {
+			errors.rejectValue("accountNumber", REQUIRED, REQUIRED);
 		}
 
 		// type validation
-		if (pet.isNew() && pet.getType() == null) {
+		if (account.isNew() && account.getType() == null) {
 			errors.rejectValue("type", REQUIRED, REQUIRED);
 		}
 
-		// birth date validation
-		if (pet.getBirthDate() == null) {
-			errors.rejectValue("birthDate", REQUIRED, REQUIRED);
+		// opened date validation
+		if (account.getOpenedDate() == null) {
+			errors.rejectValue("openedDate", REQUIRED, REQUIRED);
 		}
 	}
 
-	/**
-	 * This Validator validates *just* Pet instances
-	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return Pet.class.isAssignableFrom(clazz);
+		return Account.class.isAssignableFrom(clazz);
 	}
 
 }

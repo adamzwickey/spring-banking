@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,20 +32,18 @@ import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * @author Juergen Hoeller
- * @author Ken Krebs
- * @author Arjen Poutsma
- * @author Michael Isvy
- * @author Dave Syer
- * @author Wick Dynex
+ * Controller for transaction operations.
  */
 @Controller
-class VisitController {
+class TransactionController {
 
-	private final OwnerRepository owners;
+	private final CustomerRepository customers;
 
-	public VisitController(OwnerRepository owners) {
-		this.owners = owners;
+	private final AccountService accountService;
+
+	public TransactionController(CustomerRepository customers, AccountService accountService) {
+		this.customers = customers;
+		this.accountService = accountService;
 	}
 
 	@InitBinder
@@ -52,53 +51,61 @@ class VisitController {
 		dataBinder.setDisallowedFields("id");
 	}
 
-	/**
-	 * Called before each and every @RequestMapping annotated method. 2 goals: - Make sure
-	 * we always have fresh data - Since we do not use the session scope, make sure that
-	 * Pet object always has an id (Even though id is not part of the form fields)
-	 * @param petId
-	 * @return Pet
-	 */
-	@ModelAttribute("visit")
-	public Visit loadPetWithVisit(@PathVariable("ownerId") int ownerId, @PathVariable("petId") int petId,
-			Map<String, Object> model) {
-		Optional<Owner> optionalOwner = owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
+	@ModelAttribute("transaction")
+	public Transaction loadAccountWithTransaction(@PathVariable("customerId") int customerId,
+			@PathVariable("accountId") int accountId, Map<String, Object> model) {
+		Optional<Customer> optionalCustomer = customers.findById(customerId);
+		Customer customer = optionalCustomer.orElseThrow(() -> new IllegalArgumentException(
+				"Customer not found with id: " + customerId + ". Please ensure the ID is correct "));
 
-		Pet pet = owner.getPet(petId);
-		if (pet == null) {
+		Account account = customer.getAccount(accountId);
+		if (account == null) {
 			throw new IllegalArgumentException(
-					"Pet with id " + petId + " not found for owner with id " + ownerId + ".");
+					"Account with id " + accountId + " not found for customer with id " + customerId + ".");
 		}
-		model.put("pet", pet);
-		model.put("owner", owner);
+		model.put("account", account);
+		model.put("customer", customer);
 
-		Visit visit = new Visit();
-		pet.addVisit(visit);
-		return visit;
+		Transaction transaction = new Transaction();
+		account.addTransaction(transaction);
+		return transaction;
 	}
 
-	// Spring MVC calls method loadPetWithVisit(...) before initNewVisitForm is
-	// called
-	@GetMapping("/owners/{ownerId}/pets/{petId}/visits/new")
-	public String initNewVisitForm() {
-		return "pets/createOrUpdateVisitForm";
+	@GetMapping("/customers/{customerId}/accounts/{accountId}/transactions/new")
+	public String initNewTransactionForm() {
+		return "accounts/createOrUpdateTransactionForm";
 	}
 
-	// Spring MVC calls method loadPetWithVisit(...) before processNewVisitForm is
-	// called
-	@PostMapping("/owners/{ownerId}/pets/{petId}/visits/new")
-	public String processNewVisitForm(@ModelAttribute Owner owner, @PathVariable int petId, @Valid Visit visit,
-			BindingResult result, RedirectAttributes redirectAttributes) {
+	@PostMapping("/customers/{customerId}/accounts/{accountId}/transactions/new")
+	public String processNewTransactionForm(@ModelAttribute Customer customer, @PathVariable int accountId,
+			@Valid Transaction transaction, BindingResult result, RedirectAttributes redirectAttributes) {
 		if (result.hasErrors()) {
-			return "pets/createOrUpdateVisitForm";
+			return "accounts/createOrUpdateTransactionForm";
 		}
 
-		owner.addVisit(petId, visit);
-		this.owners.save(owner);
-		redirectAttributes.addFlashAttribute("message", "Your visit has been booked");
-		return "redirect:/owners/{ownerId}";
+		try {
+			BigDecimal amount = transaction.getAmount();
+			String type = transaction.getTransactionType();
+			String description = transaction.getDescription();
+
+			if ("DEPOSIT".equals(type)) {
+				accountService.deposit(customer, accountId, amount, description);
+			}
+			else if ("WITHDRAWAL".equals(type)) {
+				accountService.withdraw(customer, accountId, amount, description);
+			}
+			else {
+				customer.addTransaction(accountId, transaction);
+				this.customers.save(customer);
+			}
+		}
+		catch (InsufficientFundsException ex) {
+			result.rejectValue("amount", "insufficientFunds", ex.getMessage());
+			return "accounts/createOrUpdateTransactionForm";
+		}
+
+		redirectAttributes.addFlashAttribute("message", "Your transaction has been recorded");
+		return "redirect:/customers/{customerId}";
 	}
 
 }

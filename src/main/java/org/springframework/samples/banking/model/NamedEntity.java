@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.model;
+package org.springframework.samples.banking.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.validation.constraints.NotBlank;
 
 /**
  * Simple JavaBean domain object adds a name property to <code>BaseEntity</code>. Used as
@@ -25,13 +24,11 @@ import jakarta.validation.constraints.NotBlank;
  *
  * @author Ken Krebs
  * @author Juergen Hoeller
- * @author Wick Dynex
  */
 @MappedSuperclass
 public class NamedEntity extends BaseEntity {
 
 	@Column
-	@NotBlank
 	private String name;
 
 	public String getName() {
@@ -44,8 +41,7 @@ public class NamedEntity extends BaseEntity {
 
 	@Override
 	public String toString() {
-		String name = this.getName();
-		return name != null ? name : "<null>";
+		return this.getName();
 	}
 
 }

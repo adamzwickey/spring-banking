@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.vet;
-
-import org.springframework.samples.petclinic.model.NamedEntity;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+package org.springframework.samples.banking.customer;
 
 /**
- * Models a {@link Vet Vet's} specialty (for example, dentistry).
- *
- * @author Juergen Hoeller
+ * Exception thrown when a withdrawal or transfer would overdraw an account.
  */
-@Entity
-@Table(name = "specialties")
-public class Specialty extends NamedEntity {
+public class InsufficientFundsException extends RuntimeException {
+
+	public InsufficientFundsException(String message) {
+		super(message);
+	}
 
 }

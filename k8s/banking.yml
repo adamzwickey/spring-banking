@@ -2,35 +2,35 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: petclinic
+  name: banking
 spec:
   type: NodePort
   ports:
     - port: 80
       targetPort: 8080
   selector:
-    app: petclinic
+    app: banking
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: petclinic
+  name: banking
   labels:
-    app: petclinic
+    app: banking
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: petclinic
+      app: banking
   template:
     metadata:
       labels:
-        app: petclinic
+        app: banking
     spec:
       containers:
         - name: workload
-          image: dsyer/petclinic
+          image: spring-banking:latest
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: postgres

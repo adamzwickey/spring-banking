@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import java.util.List;
 import java.util.Objects;
@@ -39,21 +39,17 @@ import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * @author Juergen Hoeller
- * @author Ken Krebs
- * @author Arjen Poutsma
- * @author Michael Isvy
- * @author Wick Dynex
+ * Controller for customer operations.
  */
 @Controller
-class OwnerController {
+class CustomerController {
 
-	private static final String VIEWS_OWNER_CREATE_OR_UPDATE_FORM = "owners/createOrUpdateOwnerForm";
+	private static final String VIEWS_CUSTOMER_CREATE_OR_UPDATE_FORM = "customers/createOrUpdateCustomerForm";
 
-	private final OwnerRepository owners;
+	private final CustomerRepository customers;
 
-	public OwnerController(OwnerRepository owners) {
-		this.owners = owners;
+	public CustomerController(CustomerRepository customers) {
+		this.customers = customers;
 	}
 
 	@InitBinder
@@ -61,115 +57,106 @@ class OwnerController {
 		dataBinder.setDisallowedFields("id");
 	}
 
-	@ModelAttribute("owner")
-	public Owner findOwner(@PathVariable(name = "ownerId", required = false) Integer ownerId) {
-		return ownerId == null ? new Owner()
-				: this.owners.findById(ownerId)
-					.orElseThrow(() -> new IllegalArgumentException("Owner not found with id: " + ownerId
-							+ ". Please ensure the ID is correct " + "and the owner exists in the database."));
+	@ModelAttribute("customer")
+	public Customer findCustomer(@PathVariable(name = "customerId", required = false) Integer customerId) {
+		return customerId == null ? new Customer()
+				: this.customers.findById(customerId)
+					.orElseThrow(() -> new IllegalArgumentException("Customer not found with id: " + customerId
+							+ ". Please ensure the ID is correct " + "and the customer exists in the database."));
 	}
 
-	@GetMapping("/owners/new")
+	@GetMapping("/customers/new")
 	public String initCreationForm() {
-		return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
+		return VIEWS_CUSTOMER_CREATE_OR_UPDATE_FORM;
 	}
 
-	@PostMapping("/owners/new")
-	public String processCreationForm(@Valid Owner owner, BindingResult result, RedirectAttributes redirectAttributes) {
+	@PostMapping("/customers/new")
+	public String processCreationForm(@Valid Customer customer, BindingResult result,
+			RedirectAttributes redirectAttributes) {
 		if (result.hasErrors()) {
-			redirectAttributes.addFlashAttribute("error", "There was an error in creating the owner.");
-			return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
+			redirectAttributes.addFlashAttribute("error", "There was an error in creating the customer.");
+			return VIEWS_CUSTOMER_CREATE_OR_UPDATE_FORM;
 		}
 
-		this.owners.save(owner);
-		redirectAttributes.addFlashAttribute("message", "New Owner Created");
-		return "redirect:/owners/" + owner.getId();
+		this.customers.save(customer);
+		redirectAttributes.addFlashAttribute("message", "New Customer Created");
+		return "redirect:/customers/" + customer.getId();
 	}
 
-	@GetMapping("/owners/find")
+	@GetMapping("/customers/find")
 	public String initFindForm() {
-		return "owners/findOwners";
+		return "customers/findCustomers";
 	}
 
-	@GetMapping("/owners")
-	public String processFindForm(@RequestParam(defaultValue = "1") int page, Owner owner, BindingResult result,
+	@GetMapping("/customers")
+	public String processFindForm(@RequestParam(defaultValue = "1") int page, Customer customer, BindingResult result,
 			Model model) {
-		// allow parameterless GET request for /owners to return all records
-		String lastName = owner.getLastName();
+		String lastName = customer.getLastName();
 		if (lastName == null) {
-			lastName = ""; // empty string signifies broadest possible search
+			lastName = "";
 		}
 
-		// find owners by last name
-		Page<Owner> ownersResults = findPaginatedForOwnersLastName(page, lastName);
-		if (ownersResults.isEmpty()) {
-			// no owners found
+		Page<Customer> customersResults = findPaginatedForCustomersLastName(page, lastName);
+		if (customersResults.isEmpty()) {
 			result.rejectValue("lastName", "notFound", "not found");
-			return "owners/findOwners";
+			return "customers/findCustomers";
 		}
 
-		if (ownersResults.getTotalElements() == 1) {
-			// 1 owner found
-			owner = ownersResults.iterator().next();
-			return "redirect:/owners/" + owner.getId();
+		if (customersResults.getTotalElements() == 1) {
+			customer = customersResults.iterator().next();
+			return "redirect:/customers/" + customer.getId();
 		}
 
-		// multiple owners found
-		return addPaginationModel(page, model, ownersResults);
+		return addPaginationModel(page, model, customersResults);
 	}
 
-	private String addPaginationModel(int page, Model model, Page<Owner> paginated) {
-		List<Owner> listOwners = paginated.getContent();
+	private String addPaginationModel(int page, Model model, Page<Customer> paginated) {
+		List<Customer> listCustomers = paginated.getContent();
 		model.addAttribute("currentPage", page);
 		model.addAttribute("totalPages", paginated.getTotalPages());
 		model.addAttribute("totalItems", paginated.getTotalElements());
-		model.addAttribute("listOwners", listOwners);
-		return "owners/ownersList";
+		model.addAttribute("listCustomers", listCustomers);
+		return "customers/customersList";
 	}
 
-	private Page<Owner> findPaginatedForOwnersLastName(int page, String lastname) {
+	private Page<Customer> findPaginatedForCustomersLastName(int page, String lastname) {
 		int pageSize = 5;
 		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByLastNameStartingWith(lastname, pageable);
+		return customers.findByLastNameStartingWith(lastname, pageable);
 	}
 
-	@GetMapping("/owners/{ownerId}/edit")
-	public String initUpdateOwnerForm() {
-		return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
+	@GetMapping("/customers/{customerId}/edit")
+	public String initUpdateCustomerForm() {
+		return VIEWS_CUSTOMER_CREATE_OR_UPDATE_FORM;
 	}
 
-	@PostMapping("/owners/{ownerId}/edit")
-	public String processUpdateOwnerForm(@Valid Owner owner, BindingResult result, @PathVariable("ownerId") int ownerId,
-			RedirectAttributes redirectAttributes) {
+	@PostMapping("/customers/{customerId}/edit")
+	public String processUpdateCustomerForm(@Valid Customer customer, BindingResult result,
+			@PathVariable("customerId") int customerId, RedirectAttributes redirectAttributes) {
 		if (result.hasErrors()) {
-			redirectAttributes.addFlashAttribute("error", "There was an error in updating the owner.");
-			return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
+			redirectAttributes.addFlashAttribute("error", "There was an error in updating the customer.");
+			return VIEWS_CUSTOMER_CREATE_OR_UPDATE_FORM;
 		}
 
-		if (!Objects.equals(owner.getId(), ownerId)) {
-			result.rejectValue("id", "mismatch", "The owner ID in the form does not match the URL.");
-			redirectAttributes.addFlashAttribute("error", "Owner ID mismatch. Please try again.");
-			return "redirect:/owners/{ownerId}/edit";
+		if (!Objects.equals(customer.getId(), customerId)) {
+			result.rejectValue("id", "mismatch", "The customer ID in the form does not match the URL.");
+			redirectAttributes.addFlashAttribute("error", "Customer ID mismatch. Please try again.");
+			return "redirect:/customers/{customerId}/edit";
 		}
 
-		owner.setId(ownerId);
-		this.owners.save(owner);
-		redirectAttributes.addFlashAttribute("message", "Owner Values Updated");
-		return "redirect:/owners/{ownerId}";
+		customer.setId(customerId);
+		this.customers.save(customer);
+		redirectAttributes.addFlashAttribute("message", "Customer Values Updated");
+		return "redirect:/customers/{customerId}";
 	}
 
-	/**
-	 * Custom handler for displaying an owner.
-	 * @param ownerId the ID of the owner to display
-	 * @return a ModelMap with the model attributes for the view
-	 */
-	@GetMapping("/owners/{ownerId}")
-	public ModelAndView showOwner(@PathVariable("ownerId") int ownerId) {
-		ModelAndView mav = new ModelAndView("owners/ownerDetails");
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-		mav.addObject(owner);
+	@GetMapping("/customers/{customerId}")
+	public ModelAndView showCustomer(@PathVariable("customerId") int customerId) {
+		ModelAndView mav = new ModelAndView("customers/customerDetails");
+		Optional<Customer> optionalCustomer = this.customers.findById(customerId);
+		Customer customer = optionalCustomer.orElseThrow(() -> new IllegalArgumentException(
+				"Customer not found with id: " + customerId + ". Please ensure the ID is correct "));
+		mav.addObject(customer);
 		return mav;
 	}
 

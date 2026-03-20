@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.samples.petclinic.model.NamedEntity;
+import org.springframework.samples.banking.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -34,52 +35,74 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 /**
- * Simple business object representing a pet.
- *
- * @author Ken Krebs
- * @author Juergen Hoeller
- * @author Sam Brannen
- * @author Wick Dynex
+ * Simple business object representing a bank account.
  */
 @Entity
-@Table(name = "pets")
-public class Pet extends NamedEntity {
+@Table(name = "accounts")
+public class Account extends BaseEntity {
 
-	@Column
+	@Column(name = "account_number")
+	private String accountNumber;
+
+	@Column(name = "opened_date")
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
-	private LocalDate birthDate;
+	private LocalDate openedDate;
+
+	@Column(precision = 19, scale = 2)
+	private BigDecimal balance = BigDecimal.ZERO;
 
 	@ManyToOne
 	@JoinColumn(name = "type_id")
-	private PetType type;
+	private AccountType type;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "pet_id")
-	@OrderBy("date ASC")
-	private final Set<Visit> visits = new LinkedHashSet<>();
+	@JoinColumn(name = "account_id")
+	@OrderBy("transaction_date ASC")
+	private final Set<Transaction> transactions = new LinkedHashSet<>();
 
-	public void setBirthDate(LocalDate birthDate) {
-		this.birthDate = birthDate;
+	public String getAccountNumber() {
+		return this.accountNumber;
 	}
 
-	public LocalDate getBirthDate() {
-		return this.birthDate;
+	public void setAccountNumber(String accountNumber) {
+		this.accountNumber = accountNumber;
 	}
 
-	public PetType getType() {
+	public LocalDate getOpenedDate() {
+		return this.openedDate;
+	}
+
+	public void setOpenedDate(LocalDate openedDate) {
+		this.openedDate = openedDate;
+	}
+
+	public BigDecimal getBalance() {
+		return this.balance;
+	}
+
+	public void setBalance(BigDecimal balance) {
+		this.balance = balance;
+	}
+
+	public AccountType getType() {
 		return this.type;
 	}
 
-	public void setType(PetType type) {
+	public void setType(AccountType type) {
 		this.type = type;
 	}
 
-	public Collection<Visit> getVisits() {
-		return this.visits;
+	public Collection<Transaction> getTransactions() {
+		return this.transactions;
 	}
 
-	public void addVisit(Visit visit) {
-		getVisits().add(visit);
+	public void addTransaction(Transaction transaction) {
+		getTransactions().add(transaction);
+	}
+
+	@Override
+	public String toString() {
+		return this.accountNumber;
 	}
 
 }

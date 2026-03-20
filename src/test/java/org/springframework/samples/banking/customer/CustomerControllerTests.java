@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +29,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -50,201 +51,207 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for {@link OwnerController}
- *
- * @author Colin But
- * @author Wick Dynex
+ * Test class for {@link CustomerController}
  */
-@WebMvcTest(OwnerController.class)
+@WebMvcTest(CustomerController.class)
 @DisabledInNativeImage
 @DisabledInAotMode
-class OwnerControllerTests {
+class CustomerControllerTests {
 
-	private static final int TEST_OWNER_ID = 1;
+	private static final int TEST_CUSTOMER_ID = 1;
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private OwnerRepository owners;
+	private CustomerRepository customers;
 
-	private Owner george() {
-		Owner george = new Owner();
-		george.setId(TEST_OWNER_ID);
+	private Customer george() {
+		Customer george = new Customer();
+		george.setId(TEST_CUSTOMER_ID);
 		george.setFirstName("George");
 		george.setLastName("Franklin");
+		george.setEmail("george@email.com");
+		george.setPhone("6085551023");
 		george.setAddress("110 W. Liberty St.");
-		george.setCity("Madison");
-		george.setTelephone("6085551023");
-		Pet max = new Pet();
-		PetType dog = new PetType();
-		dog.setName("dog");
-		max.setType(dog);
-		max.setName("Max");
-		max.setBirthDate(LocalDate.now());
-		george.addPet(max);
-		max.setId(1);
+		Account account = new Account();
+		AccountType checking = new AccountType();
+		checking.setName("Checking");
+		account.setType(checking);
+		account.setAccountNumber("CHK-10001");
+		account.setOpenedDate(LocalDate.now());
+		account.setBalance(new BigDecimal("5250.00"));
+		george.addAccount(account);
+		account.setId(1);
 		return george;
 	}
 
 	@BeforeEach
 	void setup() {
 
-		Owner george = george();
-		given(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class)))
+		Customer george = george();
+		given(this.customers.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class)))
 			.willReturn(new PageImpl<>(List.of(george)));
 
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(george));
-		Visit visit = new Visit();
-		visit.setDate(LocalDate.now());
-		george.getPet("Max").getVisits().add(visit);
+		given(this.customers.findById(TEST_CUSTOMER_ID)).willReturn(Optional.of(george));
+		Transaction transaction = new Transaction();
+		transaction.setDate(LocalDate.now());
+		transaction.setAmount(new BigDecimal("100.00"));
+		transaction.setTransactionType("DEPOSIT");
+		george.getAccounts().get(0).getTransactions().add(transaction);
 
 	}
 
 	@Test
 	void initCreationForm() throws Exception {
-		mockMvc.perform(get("/owners/new"))
+		mockMvc.perform(get("/customers/new"))
 			.andExpect(status().isOk())
-			.andExpect(model().attributeExists("owner"))
-			.andExpect(view().name("owners/createOrUpdateOwnerForm"));
+			.andExpect(model().attributeExists("customer"))
+			.andExpect(view().name("customers/createOrUpdateCustomerForm"));
 	}
 
 	@Test
 	void processCreationFormSuccess() throws Exception {
 		mockMvc
-			.perform(post("/owners/new").param("firstName", "Joe")
+			.perform(post("/customers/new").param("firstName", "Joe")
 				.param("lastName", "Bloggs")
-				.param("address", "123 Caramel Street")
-				.param("city", "London")
-				.param("telephone", "1316761638"))
+				.param("email", "joe@email.com")
+				.param("phone", "1316761638")
+				.param("address", "123 Caramel Street"))
 			.andExpect(status().is3xxRedirection());
 	}
 
 	@Test
 	void processCreationFormHasErrors() throws Exception {
 		mockMvc
-			.perform(post("/owners/new").param("firstName", "Joe").param("lastName", "Bloggs").param("city", "London"))
+			.perform(post("/customers/new").param("firstName", "Joe")
+				.param("lastName", "Bloggs")
+				.param("email", "joe@email.com"))
 			.andExpect(status().isOk())
-			.andExpect(model().attributeHasErrors("owner"))
-			.andExpect(model().attributeHasFieldErrors("owner", "address"))
-			.andExpect(model().attributeHasFieldErrors("owner", "telephone"))
-			.andExpect(view().name("owners/createOrUpdateOwnerForm"));
+			.andExpect(model().attributeHasErrors("customer"))
+			.andExpect(model().attributeHasFieldErrors("customer", "phone"))
+			.andExpect(model().attributeHasFieldErrors("customer", "address"))
+			.andExpect(view().name("customers/createOrUpdateCustomerForm"));
 	}
 
 	@Test
 	void initFindForm() throws Exception {
-		mockMvc.perform(get("/owners/find"))
+		mockMvc.perform(get("/customers/find"))
 			.andExpect(status().isOk())
-			.andExpect(model().attributeExists("owner"))
-			.andExpect(view().name("owners/findOwners"));
+			.andExpect(model().attributeExists("customer"))
+			.andExpect(view().name("customers/findCustomers"));
 	}
 
 	@Test
 	void processFindFormSuccess() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of(george(), new Owner()));
-		when(this.owners.findByLastNameStartingWith(anyString(), any(Pageable.class))).thenReturn(tasks);
-		mockMvc.perform(get("/owners?page=1")).andExpect(status().isOk()).andExpect(view().name("owners/ownersList"));
+		Page<Customer> tasks = new PageImpl<>(List.of(george(), new Customer()));
+		when(this.customers.findByLastNameStartingWith(anyString(), any(Pageable.class))).thenReturn(tasks);
+		mockMvc.perform(get("/customers?page=1"))
+			.andExpect(status().isOk())
+			.andExpect(view().name("customers/customersList"));
 	}
 
 	@Test
 	void processFindFormByLastName() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of(george()));
-		when(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class))).thenReturn(tasks);
-		mockMvc.perform(get("/owners?page=1").param("lastName", "Franklin"))
+		Page<Customer> tasks = new PageImpl<>(List.of(george()));
+		when(this.customers.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class))).thenReturn(tasks);
+		mockMvc.perform(get("/customers?page=1").param("lastName", "Franklin"))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(view().name("redirect:/owners/" + TEST_OWNER_ID));
+			.andExpect(view().name("redirect:/customers/" + TEST_CUSTOMER_ID));
 	}
 
 	@Test
-	void processFindFormNoOwnersFound() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of());
-		when(this.owners.findByLastNameStartingWith(eq("Unknown Surname"), any(Pageable.class))).thenReturn(tasks);
-		mockMvc.perform(get("/owners?page=1").param("lastName", "Unknown Surname"))
+	void processFindFormNoCustomersFound() throws Exception {
+		Page<Customer> tasks = new PageImpl<>(List.of());
+		when(this.customers.findByLastNameStartingWith(eq("Unknown Surname"), any(Pageable.class))).thenReturn(tasks);
+		mockMvc.perform(get("/customers?page=1").param("lastName", "Unknown Surname"))
 			.andExpect(status().isOk())
-			.andExpect(model().attributeHasFieldErrors("owner", "lastName"))
-			.andExpect(model().attributeHasFieldErrorCode("owner", "lastName", "notFound"))
-			.andExpect(view().name("owners/findOwners"));
+			.andExpect(model().attributeHasFieldErrors("customer", "lastName"))
+			.andExpect(model().attributeHasFieldErrorCode("customer", "lastName", "notFound"))
+			.andExpect(view().name("customers/findCustomers"));
 
 	}
 
 	@Test
-	void initUpdateOwnerForm() throws Exception {
-		mockMvc.perform(get("/owners/{ownerId}/edit", TEST_OWNER_ID))
+	void initUpdateCustomerForm() throws Exception {
+		mockMvc.perform(get("/customers/{customerId}/edit", TEST_CUSTOMER_ID))
 			.andExpect(status().isOk())
-			.andExpect(model().attributeExists("owner"))
-			.andExpect(model().attribute("owner", hasProperty("lastName", is("Franklin"))))
-			.andExpect(model().attribute("owner", hasProperty("firstName", is("George"))))
-			.andExpect(model().attribute("owner", hasProperty("address", is("110 W. Liberty St."))))
-			.andExpect(model().attribute("owner", hasProperty("city", is("Madison"))))
-			.andExpect(model().attribute("owner", hasProperty("telephone", is("6085551023"))))
-			.andExpect(view().name("owners/createOrUpdateOwnerForm"));
+			.andExpect(model().attributeExists("customer"))
+			.andExpect(model().attribute("customer", hasProperty("lastName", is("Franklin"))))
+			.andExpect(model().attribute("customer", hasProperty("firstName", is("George"))))
+			.andExpect(model().attribute("customer", hasProperty("email", is("george@email.com"))))
+			.andExpect(model().attribute("customer", hasProperty("phone", is("6085551023"))))
+			.andExpect(model().attribute("customer", hasProperty("address", is("110 W. Liberty St."))))
+			.andExpect(view().name("customers/createOrUpdateCustomerForm"));
 	}
 
 	@Test
-	void processUpdateOwnerFormSuccess() throws Exception {
+	void processUpdateCustomerFormSuccess() throws Exception {
 		mockMvc
-			.perform(post("/owners/{ownerId}/edit", TEST_OWNER_ID).param("firstName", "Joe")
+			.perform(post("/customers/{customerId}/edit", TEST_CUSTOMER_ID).param("firstName", "Joe")
 				.param("lastName", "Bloggs")
-				.param("address", "123 Caramel Street")
-				.param("city", "London")
-				.param("telephone", "1616291589"))
+				.param("email", "joe@email.com")
+				.param("phone", "1616291589")
+				.param("address", "123 Caramel Street"))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(view().name("redirect:/owners/{ownerId}"));
+			.andExpect(view().name("redirect:/customers/{customerId}"));
 	}
 
 	@Test
-	void processUpdateOwnerFormUnchangedSuccess() throws Exception {
-		mockMvc.perform(post("/owners/{ownerId}/edit", TEST_OWNER_ID))
+	void processUpdateCustomerFormUnchangedSuccess() throws Exception {
+		mockMvc.perform(post("/customers/{customerId}/edit", TEST_CUSTOMER_ID))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(view().name("redirect:/owners/{ownerId}"));
+			.andExpect(view().name("redirect:/customers/{customerId}"));
 	}
 
 	@Test
-	void processUpdateOwnerFormHasErrors() throws Exception {
+	void processUpdateCustomerFormHasErrors() throws Exception {
 		mockMvc
-			.perform(post("/owners/{ownerId}/edit", TEST_OWNER_ID).param("firstName", "Joe")
+			.perform(post("/customers/{customerId}/edit", TEST_CUSTOMER_ID).param("firstName", "Joe")
 				.param("lastName", "Bloggs")
-				.param("address", "")
-				.param("telephone", ""))
+				.param("email", "")
+				.param("phone", ""))
 			.andExpect(status().isOk())
-			.andExpect(model().attributeHasErrors("owner"))
-			.andExpect(model().attributeHasFieldErrors("owner", "address"))
-			.andExpect(model().attributeHasFieldErrors("owner", "telephone"))
-			.andExpect(view().name("owners/createOrUpdateOwnerForm"));
+			.andExpect(model().attributeHasErrors("customer"))
+			.andExpect(model().attributeHasFieldErrors("customer", "email"))
+			.andExpect(model().attributeHasFieldErrors("customer", "phone"))
+			.andExpect(view().name("customers/createOrUpdateCustomerForm"));
 	}
 
 	@Test
-	void showOwner() throws Exception {
-		mockMvc.perform(get("/owners/{ownerId}", TEST_OWNER_ID))
+	void showCustomer() throws Exception {
+		mockMvc.perform(get("/customers/{customerId}", TEST_CUSTOMER_ID))
 			.andExpect(status().isOk())
-			.andExpect(model().attribute("owner", hasProperty("lastName", is("Franklin"))))
-			.andExpect(model().attribute("owner", hasProperty("firstName", is("George"))))
-			.andExpect(model().attribute("owner", hasProperty("address", is("110 W. Liberty St."))))
-			.andExpect(model().attribute("owner", hasProperty("city", is("Madison"))))
-			.andExpect(model().attribute("owner", hasProperty("telephone", is("6085551023"))))
-			.andExpect(model().attribute("owner", hasProperty("pets", not(empty()))))
-			.andExpect(model().attribute("owner",
-					hasProperty("pets", hasItem(hasProperty("visits", hasSize(greaterThan(0)))))))
-			.andExpect(view().name("owners/ownerDetails"));
+			.andExpect(model().attribute("customer", hasProperty("lastName", is("Franklin"))))
+			.andExpect(model().attribute("customer", hasProperty("firstName", is("George"))))
+			.andExpect(model().attribute("customer", hasProperty("email", is("george@email.com"))))
+			.andExpect(model().attribute("customer", hasProperty("phone", is("6085551023"))))
+			.andExpect(model().attribute("customer", hasProperty("address", is("110 W. Liberty St."))))
+			.andExpect(model().attribute("customer", hasProperty("accounts", not(empty()))))
+			.andExpect(model().attribute("customer",
+					hasProperty("accounts", hasItem(hasProperty("transactions", hasSize(greaterThan(0)))))))
+			.andExpect(view().name("customers/customerDetails"));
 	}
 
 	@Test
-	void processUpdateOwnerFormWithIdMismatch() throws Exception {
-		int pathOwnerId = 1;
+	void processUpdateCustomerFormWithIdMismatch() throws Exception {
+		int pathCustomerId = 1;
 
-		Owner owner = new Owner();
-		owner.setId(2);
-		owner.setFirstName("John");
-		owner.setLastName("Doe");
-		owner.setAddress("Center Street");
-		owner.setCity("New York");
-		owner.setTelephone("0123456789");
+		Customer customer = new Customer();
+		customer.setId(2);
+		customer.setFirstName("John");
+		customer.setLastName("Doe");
+		customer.setEmail("john@email.com");
+		customer.setPhone("0123456789");
+		customer.setAddress("Center Street");
 
-		when(owners.findById(pathOwnerId)).thenReturn(Optional.of(owner));
+		when(customers.findById(pathCustomerId)).thenReturn(Optional.of(customer));
 
-		mockMvc.perform(MockMvcRequestBuilders.post("/owners/{ownerId}/edit", pathOwnerId).flashAttr("owner", owner))
+		mockMvc
+			.perform(MockMvcRequestBuilders.post("/customers/{customerId}/edit", pathCustomerId)
+				.flashAttr("customer", customer))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(redirectedUrl("/owners/" + pathOwnerId + "/edit"))
+			.andExpect(redirectedUrl("/customers/" + pathCustomerId + "/edit"))
 			.andExpect(flash().attributeExists("error"));
 	}
 

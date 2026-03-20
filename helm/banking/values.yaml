@@ -1,0 +1,33 @@
+replicaCount: 1
+
+image:
+  repository: spring-banking
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+
+spring:
+  profile: postgres
+
+database:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "18.3"
+  name: banking
+  username: user
+  password: pass
+  service:
+    port: 5432
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

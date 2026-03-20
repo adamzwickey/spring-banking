@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import java.util.List;
 
@@ -22,18 +22,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 /**
- * Repository class for <code>PetType</code> domain objects.
- *
- * @author Patrick Baumgartner
+ * Repository class for <code>AccountType</code> domain objects.
  */
 
-public interface PetTypeRepository extends JpaRepository<PetType, Integer> {
+public interface AccountTypeRepository extends JpaRepository<AccountType, Integer> {
 
-	/**
-	 * Retrieve all {@link PetType}s from the data store.
-	 * @return a Collection of {@link PetType}s.
-	 */
-	@Query("SELECT ptype FROM PetType ptype ORDER BY ptype.name")
-	List<PetType> findPetTypes();
+	@Query("SELECT atype FROM AccountType atype ORDER BY atype.name")
+	List<AccountType> findAccountTypes();
 
 }

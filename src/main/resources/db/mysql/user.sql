@@ -1,11 +1,11 @@
-CREATE DATABASE IF NOT EXISTS petclinic;
+CREATE DATABASE IF NOT EXISTS banking;
 
-ALTER DATABASE petclinic
+ALTER DATABASE banking
   DEFAULT CHARACTER SET utf8
   DEFAULT COLLATE utf8_general_ci;
 
-CREATE USER IF NOT EXISTS 'petclinic'@'%' IDENTIFIED BY 'petclinic';
+CREATE USER IF NOT EXISTS 'banking'@'%' IDENTIFIED BY 'banking';
 
-GRANT ALL PRIVILEGES ON petclinic.* TO 'petclinic'@'%';
+GRANT ALL PRIVILEGES ON banking.* TO 'banking'@'%';
 
 FLUSH PRIVILEGES;

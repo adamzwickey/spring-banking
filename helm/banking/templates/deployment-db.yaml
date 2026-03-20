@@ -1,66 +1,43 @@
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: demo-db
-type: servicebinding.io/postgresql
-stringData:
-  type: "postgresql"
-  provider: "postgresql"
-  host: "demo-db"
-  port: "5432"
-  database: "banking"
-  username: "user"
-  password: "pass"
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: demo-db
-spec:
-  ports:
-    - port: 5432
-  selector:
-    app: demo-db
-
----
+{{- if .Values.database.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-db
+  name: {{ include "banking.dbFullname" . }}
   labels:
-    app: demo-db
+    {{- include "banking.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
 spec:
   selector:
     matchLabels:
-      app: demo-db
+      {{- include "banking.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
   template:
     metadata:
       labels:
-        app: demo-db
+        {{- include "banking.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
     spec:
       containers:
-        - image: postgres:18.3
-          name: postgresql
+        - name: postgresql
+          image: "{{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}"
           env:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: demo-db
+                  name: {{ include "banking.dbFullname" . }}
                   key: username
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: demo-db
+                  name: {{ include "banking.dbFullname" . }}
                   key: password
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: demo-db
+                  name: {{ include "banking.dbFullname" . }}
                   key: database
           ports:
-            - containerPort: 5432
+            - containerPort: {{ .Values.database.service.port }}
               name: postgresql
           livenessProbe:
             tcpSocket:
@@ -71,3 +48,4 @@ spec:
           startupProbe:
             tcpSocket:
               port: postgresql
+{{- end }}

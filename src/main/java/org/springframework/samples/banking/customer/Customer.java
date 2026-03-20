@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.samples.petclinic.model.Person;
+import org.springframework.samples.banking.model.Person;
 import org.springframework.util.Assert;
 
 import jakarta.persistence.CascadeType;
@@ -31,40 +31,47 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Simple JavaBean domain object representing an owner.
- *
- * @author Ken Krebs
- * @author Juergen Hoeller
- * @author Sam Brannen
- * @author Michael Isvy
- * @author Oliver Drotbohm
- * @author Wick Dynex
+ * Simple JavaBean domain object representing a customer.
  */
 @Entity
-@Table(name = "owners")
-public class Owner extends Person {
+@Table(name = "customers")
+public class Customer extends Person {
+
+	@Column
+	@NotBlank
+	private String email;
+
+	@Column
+	@NotBlank
+	private String phone;
 
 	@Column
 	@NotBlank
 	private String address;
 
-	@Column
-	@NotBlank
-	private String city;
-
-	@Column
-	@NotBlank
-	@Pattern(regexp = "\\d{10}", message = "{telephone.invalid}")
-	private String telephone;
-
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "owner_id")
-	@OrderBy("name")
-	private final List<Pet> pets = new ArrayList<>();
+	@JoinColumn(name = "customer_id")
+	@OrderBy("account_number")
+	private final List<Account> accounts = new ArrayList<>();
+
+	public String getEmail() {
+		return this.email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getPhone() {
+		return this.phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
 
 	public String getAddress() {
 		return this.address;
@@ -74,70 +81,38 @@ public class Owner extends Person {
 		this.address = address;
 	}
 
-	public String getCity() {
-		return this.city;
+	public List<Account> getAccounts() {
+		return this.accounts;
 	}
 
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getTelephone() {
-		return this.telephone;
-	}
-
-	public void setTelephone(String telephone) {
-		this.telephone = telephone;
-	}
-
-	public List<Pet> getPets() {
-		return this.pets;
-	}
-
-	public void addPet(Pet pet) {
-		if (pet.isNew()) {
-			getPets().add(pet);
+	public void addAccount(Account account) {
+		if (account.isNew()) {
+			getAccounts().add(account);
 		}
 	}
 
-	/**
-	 * Return the Pet with the given name, or null if none found for this Owner.
-	 * @param name to test
-	 * @return the Pet with the given name, or null if no such Pet exists for this Owner
-	 */
-	public Pet getPet(String name) {
-		return getPet(name, false);
-	}
-
-	/**
-	 * Return the Pet with the given id, or null if none found for this Owner.
-	 * @param id to test
-	 * @return the Pet with the given id, or null if no such Pet exists for this Owner
-	 */
-	public Pet getPet(Integer id) {
-		for (Pet pet : getPets()) {
-			if (!pet.isNew()) {
-				Integer compId = pet.getId();
+	public Account getAccount(Integer id) {
+		for (Account account : getAccounts()) {
+			if (!account.isNew()) {
+				Integer compId = account.getId();
 				if (Objects.equals(compId, id)) {
-					return pet;
+					return account;
 				}
 			}
 		}
 		return null;
 	}
 
-	/**
-	 * Return the Pet with the given name, or null if none found for this Owner.
-	 * @param name to test
-	 * @param ignoreNew whether to ignore new pets (pets that are not saved yet)
-	 * @return the Pet with the given name, or null if no such Pet exists for this Owner
-	 */
-	public Pet getPet(String name, boolean ignoreNew) {
-		for (Pet pet : getPets()) {
-			String compName = pet.getName();
-			if (compName != null && compName.equalsIgnoreCase(name)) {
-				if (!ignoreNew || !pet.isNew()) {
-					return pet;
+	public Account getAccount(String accountNumber) {
+		return getAccount(accountNumber, false);
+	}
+
+	public Account getAccount(String accountNumber, boolean ignoreNew) {
+		for (Account account : getAccounts()) {
+			String compNumber = account.getAccountNumber();
+			if (compNumber != null && compNumber.equalsIgnoreCase(accountNumber)) {
+				if (!ignoreNew || !account.isNew()) {
+					return account;
 				}
 			}
 		}
@@ -150,27 +125,21 @@ public class Owner extends Person {
 			.append("new", this.isNew())
 			.append("lastName", this.getLastName())
 			.append("firstName", this.getFirstName())
+			.append("email", this.email)
+			.append("phone", this.phone)
 			.append("address", this.address)
-			.append("city", this.city)
-			.append("telephone", this.telephone)
 			.toString();
 	}
 
-	/**
-	 * Adds the given {@link Visit} to the {@link Pet} with the given identifier.
-	 * @param petId the identifier of the {@link Pet}, must not be {@literal null}.
-	 * @param visit the visit to add, must not be {@literal null}.
-	 */
-	public void addVisit(Integer petId, Visit visit) {
+	public void addTransaction(Integer accountId, Transaction transaction) {
+		Assert.notNull(accountId, "Account identifier must not be null!");
+		Assert.notNull(transaction, "Transaction must not be null!");
 
-		Assert.notNull(petId, "Pet identifier must not be null!");
-		Assert.notNull(visit, "Visit must not be null!");
+		Account account = getAccount(accountId);
 
-		Pet pet = getPet(petId);
+		Assert.notNull(account, "Invalid Account identifier!");
 
-		Assert.notNull(pet, "Invalid Pet identifier!");
-
-		pet.addVisit(visit);
+		account.addTransaction(transaction);
 	}
 
 }

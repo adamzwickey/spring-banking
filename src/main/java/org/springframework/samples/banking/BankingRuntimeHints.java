@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic;
+package org.springframework.samples.banking;
 
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.samples.petclinic.model.BaseEntity;
-import org.springframework.samples.petclinic.model.Person;
-import org.springframework.samples.petclinic.vet.Vet;
+import org.springframework.samples.banking.model.BaseEntity;
+import org.springframework.samples.banking.model.Person;
 
-public class PetClinicRuntimeHints implements RuntimeHintsRegistrar {
+public class BankingRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-		hints.resources().registerPattern("db/*"); // https://github.com/spring-projects/spring-boot/issues/32654
+		hints.resources().registerPattern("db/*");
 		hints.resources().registerPattern("messages/*");
 		hints.resources().registerPattern("mysql-default-conf");
 		hints.serialization().registerType(BaseEntity.class);
 		hints.serialization().registerType(Person.class);
-		hints.serialization().registerType(Vet.class);
 	}
 
 }

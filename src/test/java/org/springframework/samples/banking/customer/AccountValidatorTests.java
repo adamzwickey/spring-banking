@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2012-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -32,44 +32,42 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test class for {@link PetValidator}
- *
- * @author Wick Dynex
+ * Test class for {@link AccountValidator}
  */
 @ExtendWith(MockitoExtension.class)
 @DisabledInNativeImage
-class PetValidatorTests {
+class AccountValidatorTests {
 
-	private PetValidator petValidator;
+	private AccountValidator accountValidator;
 
-	private Pet pet;
+	private Account account;
 
-	private PetType petType;
+	private AccountType accountType;
 
 	private Errors errors;
 
-	private static final String petName = "Buddy";
+	private static final String accountNumber = "CHK-10001";
 
-	private static final String petTypeName = "Dog";
+	private static final String accountTypeName = "Checking";
 
-	private static final LocalDate petBirthDate = LocalDate.of(1990, 1, 1);
+	private static final LocalDate openedDate = LocalDate.of(2020, 1, 1);
 
 	@BeforeEach
 	void setUp() {
-		petValidator = new PetValidator();
-		pet = new Pet();
-		petType = new PetType();
-		errors = new MapBindingResult(new HashMap<>(), "pet");
+		accountValidator = new AccountValidator();
+		account = new Account();
+		accountType = new AccountType();
+		errors = new MapBindingResult(new HashMap<>(), "account");
 	}
 
 	@Test
 	void validate() {
-		petType.setName(petTypeName);
-		pet.setName(petName);
-		pet.setType(petType);
-		pet.setBirthDate(petBirthDate);
+		accountType.setName(accountTypeName);
+		account.setAccountNumber(accountNumber);
+		account.setType(accountType);
+		account.setOpenedDate(openedDate);
 
-		petValidator.validate(pet, errors);
+		accountValidator.validate(account, errors);
 
 		assertFalse(errors.hasErrors());
 	}
@@ -78,38 +76,38 @@ class PetValidatorTests {
 	class ValidateHasErrors {
 
 		@Test
-		void validateWithInvalidPetName() {
-			petType.setName(petTypeName);
-			pet.setName("");
-			pet.setType(petType);
-			pet.setBirthDate(petBirthDate);
+		void validateWithInvalidAccountNumber() {
+			accountType.setName(accountTypeName);
+			account.setAccountNumber("");
+			account.setType(accountType);
+			account.setOpenedDate(openedDate);
 
-			petValidator.validate(pet, errors);
+			accountValidator.validate(account, errors);
 
-			assertTrue(errors.hasFieldErrors("name"));
+			assertTrue(errors.hasFieldErrors("accountNumber"));
 		}
 
 		@Test
-		void validateWithInvalidPetType() {
-			pet.setName(petName);
-			pet.setType(null);
-			pet.setBirthDate(petBirthDate);
+		void validateWithInvalidAccountType() {
+			account.setAccountNumber(accountNumber);
+			account.setType(null);
+			account.setOpenedDate(openedDate);
 
-			petValidator.validate(pet, errors);
+			accountValidator.validate(account, errors);
 
 			assertTrue(errors.hasFieldErrors("type"));
 		}
 
 		@Test
-		void validateWithInvalidBirthDate() {
-			petType.setName(petTypeName);
-			pet.setName(petName);
-			pet.setType(petType);
-			pet.setBirthDate(null);
+		void validateWithInvalidOpenedDate() {
+			accountType.setName(accountTypeName);
+			account.setAccountNumber(accountNumber);
+			account.setType(accountType);
+			account.setOpenedDate(null);
 
-			petValidator.validate(pet, errors);
+			accountValidator.validate(account, errors);
 
-			assertTrue(errors.hasFieldErrors("birthDate"));
+			assertTrue(errors.hasFieldErrors("openedDate"));
 		}
 
 	}

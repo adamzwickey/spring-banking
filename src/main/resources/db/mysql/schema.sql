@@ -1,55 +1,38 @@
-CREATE TABLE IF NOT EXISTS vets (
-  id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  first_name VARCHAR(30),
-  last_name VARCHAR(30),
-  INDEX(last_name)
-) engine=InnoDB;
-
-CREATE TABLE IF NOT EXISTS specialties (
+CREATE TABLE IF NOT EXISTS account_types (
   id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(80),
   INDEX(name)
 ) engine=InnoDB;
 
-CREATE TABLE IF NOT EXISTS vet_specialties (
-  vet_id INT(4) UNSIGNED NOT NULL,
-  specialty_id INT(4) UNSIGNED NOT NULL,
-  FOREIGN KEY (vet_id) REFERENCES vets(id),
-  FOREIGN KEY (specialty_id) REFERENCES specialties(id),
-  UNIQUE (vet_id,specialty_id)
-) engine=InnoDB;
-
-CREATE TABLE IF NOT EXISTS types (
-  id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(80),
-  INDEX(name)
-) engine=InnoDB;
-
-CREATE TABLE IF NOT EXISTS owners (
-  id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS customers (
+  id         INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   first_name VARCHAR(30),
-  last_name VARCHAR(30),
-  address VARCHAR(255),
-  city VARCHAR(80),
-  telephone VARCHAR(20),
+  last_name  VARCHAR(30),
+  email      VARCHAR(255),
+  phone      VARCHAR(20),
+  address    VARCHAR(255),
   INDEX(last_name)
 ) engine=InnoDB;
 
-CREATE TABLE IF NOT EXISTS pets (
-  id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(30),
-  birth_date DATE,
-  type_id INT(4) UNSIGNED NOT NULL,
-  owner_id INT(4) UNSIGNED,
-  INDEX(name),
-  FOREIGN KEY (owner_id) REFERENCES owners(id),
-  FOREIGN KEY (type_id) REFERENCES types(id)
+CREATE TABLE IF NOT EXISTS accounts (
+  id             INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  account_number VARCHAR(20),
+  opened_date    DATE,
+  balance        DECIMAL(19,2) DEFAULT 0.00,
+  type_id        INT(4) UNSIGNED NOT NULL,
+  customer_id    INT(4) UNSIGNED,
+  INDEX(account_number),
+  FOREIGN KEY (customer_id) REFERENCES customers(id),
+  FOREIGN KEY (type_id) REFERENCES account_types(id)
 ) engine=InnoDB;
 
-CREATE TABLE IF NOT EXISTS visits (
-  id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  pet_id INT(4) UNSIGNED,
-  visit_date DATE,
-  description VARCHAR(255),
-  FOREIGN KEY (pet_id) REFERENCES pets(id)
+CREATE TABLE IF NOT EXISTS transactions (
+  id               INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  account_id       INT(4) UNSIGNED,
+  transaction_date DATE,
+  amount           DECIMAL(19,2),
+  transaction_type VARCHAR(20),
+  description      VARCHAR(255),
+  balance_after    DECIMAL(19,2),
+  FOREIGN KEY (account_id) REFERENCES accounts(id)
 ) engine=InnoDB;

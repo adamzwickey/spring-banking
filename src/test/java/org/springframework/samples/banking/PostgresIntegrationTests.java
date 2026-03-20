@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic;
+package org.springframework.samples.banking;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,7 +43,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.samples.petclinic.vet.VetRepository;
+import org.springframework.samples.banking.customer.CustomerRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.DockerClientFactory;
@@ -58,7 +58,7 @@ public class PostgresIntegrationTests {
 	int port;
 
 	@Autowired
-	private VetRepository vets;
+	private CustomerRepository customers;
 
 	@Autowired
 	private RestTemplateBuilder builder;
@@ -69,7 +69,7 @@ public class PostgresIntegrationTests {
 	}
 
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(PetClinicApplication.class) //
+		new SpringApplicationBuilder(BankingApplication.class) //
 			.profiles("postgres") //
 			.properties( //
 					"spring.docker.compose.start.arguments=postgres" //
@@ -80,14 +80,14 @@ public class PostgresIntegrationTests {
 
 	@Test
 	void findAll() throws Exception {
-		vets.findAll();
-		vets.findAll(); // served from cache
+		customers.findAll();
+		customers.findAll(); // served from cache
 	}
 
 	@Test
-	void ownerDetails() {
+	void customerDetails() {
 		RestTemplate template = builder.rootUri("http://localhost:" + port).build();
-		ResponseEntity<String> result = template.exchange(RequestEntity.get("/owners/1").build(), String.class);
+		ResponseEntity<String> result = template.exchange(RequestEntity.get("/customers/1").build(), String.class);
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 

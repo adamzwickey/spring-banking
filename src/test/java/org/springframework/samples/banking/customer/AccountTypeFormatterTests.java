@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -34,64 +34,58 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Test class for {@link PetTypeFormatter}
- *
- * @author Colin But
+ * Test class for {@link AccountTypeFormatter}
  */
 @ExtendWith(MockitoExtension.class)
 @DisabledInNativeImage
-class PetTypeFormatterTests {
+class AccountTypeFormatterTests {
 
 	@Mock
-	private PetTypeRepository types;
+	private AccountTypeRepository types;
 
-	private PetTypeFormatter petTypeFormatter;
+	private AccountTypeFormatter accountTypeFormatter;
 
 	@BeforeEach
 	void setup() {
-		this.petTypeFormatter = new PetTypeFormatter(types);
+		this.accountTypeFormatter = new AccountTypeFormatter(types);
 	}
 
 	@Test
 	void testPrint() {
-		PetType petType = new PetType();
-		petType.setName("Hamster");
-		String petTypeName = this.petTypeFormatter.print(petType, Locale.ENGLISH);
-		assertThat(petTypeName).isEqualTo("Hamster");
+		AccountType accountType = new AccountType();
+		accountType.setName("Checking");
+		String accountTypeName = this.accountTypeFormatter.print(accountType, Locale.ENGLISH);
+		assertThat(accountTypeName).isEqualTo("Checking");
 	}
 
 	@Test
 	void shouldParse() throws ParseException {
-		given(types.findPetTypes()).willReturn(makePetTypes());
-		PetType petType = petTypeFormatter.parse("Bird", Locale.ENGLISH);
-		assertThat(petType.getName()).isEqualTo("Bird");
+		given(types.findAccountTypes()).willReturn(makeAccountTypes());
+		AccountType accountType = accountTypeFormatter.parse("Savings", Locale.ENGLISH);
+		assertThat(accountType.getName()).isEqualTo("Savings");
 	}
 
 	@Test
 	void shouldThrowParseException() {
-		given(types.findPetTypes()).willReturn(makePetTypes());
+		given(types.findAccountTypes()).willReturn(makeAccountTypes());
 		Assertions.assertThrows(ParseException.class, () -> {
-			petTypeFormatter.parse("Fish", Locale.ENGLISH);
+			accountTypeFormatter.parse("Investment", Locale.ENGLISH);
 		});
 	}
 
-	/**
-	 * Helper method to produce some sample pet types just for test purpose
-	 * @return {@link Collection} of {@link PetType}
-	 */
-	private List<PetType> makePetTypes() {
-		List<PetType> petTypes = new ArrayList<>();
-		petTypes.add(new PetType() {
+	private List<AccountType> makeAccountTypes() {
+		List<AccountType> accountTypes = new ArrayList<>();
+		accountTypes.add(new AccountType() {
 			{
-				setName("Dog");
+				setName("Checking");
 			}
 		});
-		petTypes.add(new PetType() {
+		accountTypes.add(new AccountType() {
 			{
-				setName("Bird");
+				setName("Savings");
 			}
 		});
-		return petTypes;
+		return accountTypes;
 	}
 
 }

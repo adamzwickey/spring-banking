@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import org.springframework.format.Formatter;
 import org.springframework.stereotype.Component;
@@ -24,34 +24,27 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Instructs Spring MVC on how to parse and print elements of type 'PetType'. Starting
- * from Spring 3.0, Formatters have come as an improvement in comparison to legacy
- * PropertyEditors. See the following links for more details: - The Spring ref doc:
- * https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#format
- *
- * @author Mark Fisher
- * @author Juergen Hoeller
- * @author Michael Isvy
+ * Instructs Spring MVC on how to parse and print elements of type 'AccountType'.
  */
 @Component
-public class PetTypeFormatter implements Formatter<PetType> {
+public class AccountTypeFormatter implements Formatter<AccountType> {
 
-	private final PetTypeRepository types;
+	private final AccountTypeRepository types;
 
-	public PetTypeFormatter(PetTypeRepository types) {
+	public AccountTypeFormatter(AccountTypeRepository types) {
 		this.types = types;
 	}
 
 	@Override
-	public String print(PetType petType, Locale locale) {
-		String name = petType.getName();
+	public String print(AccountType accountType, Locale locale) {
+		String name = accountType.getName();
 		return name != null ? name : "<null>";
 	}
 
 	@Override
-	public PetType parse(String text, Locale locale) throws ParseException {
-		Collection<PetType> findPetTypes = this.types.findPetTypes();
-		for (PetType type : findPetTypes) {
+	public AccountType parse(String text, Locale locale) throws ParseException {
+		Collection<AccountType> findAccountTypes = this.types.findAccountTypes();
+		for (AccountType type : findAccountTypes) {
 			if (Objects.equals(type.getName(), text)) {
 				return type;
 			}

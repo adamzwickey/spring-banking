@@ -13,39 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.samples.petclinic.model.BaseEntity;
+import org.springframework.samples.banking.model.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
- * Simple JavaBean domain object representing a visit.
- *
- * @author Ken Krebs
- * @author Dave Syer
+ * Simple JavaBean domain object representing a bank transaction.
  */
 @Entity
-@Table(name = "visits")
-public class Visit extends BaseEntity {
+@Table(name = "transactions")
+public class Transaction extends BaseEntity {
 
-	@Column(name = "visit_date")
+	@Column(name = "transaction_date")
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate date;
 
+	@NotNull
+	private BigDecimal amount;
+
+	@Column(name = "transaction_type")
 	@NotBlank
+	private String transactionType;
+
 	private String description;
 
-	/**
-	 * Creates a new instance of Visit for the current date
-	 */
-	public Visit() {
+	@Column(name = "balance_after")
+	private BigDecimal balanceAfter;
+
+	public Transaction() {
 		this.date = LocalDate.now();
 	}
 
@@ -57,12 +62,36 @@ public class Visit extends BaseEntity {
 		this.date = date;
 	}
 
+	public BigDecimal getAmount() {
+		return this.amount;
+	}
+
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+
+	public String getTransactionType() {
+		return this.transactionType;
+	}
+
+	public void setTransactionType(String transactionType) {
+		this.transactionType = transactionType;
+	}
+
 	public String getDescription() {
 		return this.description;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public BigDecimal getBalanceAfter() {
+		return this.balanceAfter;
+	}
+
+	public void setBalanceAfter(BigDecimal balanceAfter) {
+		this.balanceAfter = balanceAfter;
 	}
 
 }

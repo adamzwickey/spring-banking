@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.banking.customer;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +22,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,63 +35,66 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
 /**
- * Test class for {@link VisitController}
- *
- * @author Colin But
- * @author Wick Dynex
+ * Test class for {@link TransactionController}
  */
-@WebMvcTest(VisitController.class)
+@WebMvcTest(TransactionController.class)
 @DisabledInNativeImage
 @DisabledInAotMode
-class VisitControllerTests {
+class TransactionControllerTests {
 
-	private static final int TEST_OWNER_ID = 1;
+	private static final int TEST_CUSTOMER_ID = 1;
 
-	private static final int TEST_PET_ID = 1;
+	private static final int TEST_ACCOUNT_ID = 1;
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private OwnerRepository owners;
+	private CustomerRepository customers;
+
+	@MockitoBean
+	private AccountService accountService;
 
 	@BeforeEach
 	void init() {
-		Owner owner = new Owner();
-		Pet pet = new Pet();
-		owner.addPet(pet);
-		pet.setId(TEST_PET_ID);
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
+		Customer customer = new Customer();
+		Account account = new Account();
+		account.setBalance(new BigDecimal("1000.00"));
+		customer.addAccount(account);
+		account.setId(TEST_ACCOUNT_ID);
+		given(this.customers.findById(TEST_CUSTOMER_ID)).willReturn(Optional.of(customer));
 	}
 
 	@Test
-	void initNewVisitForm() throws Exception {
-		mockMvc.perform(get("/owners/{ownerId}/pets/{petId}/visits/new", TEST_OWNER_ID, TEST_PET_ID))
-			.andExpect(status().isOk())
-			.andExpect(view().name("pets/createOrUpdateVisitForm"));
-	}
-
-	@Test
-	void processNewVisitFormSuccess() throws Exception {
+	void initNewTransactionForm() throws Exception {
 		mockMvc
-			.perform(post("/owners/{ownerId}/pets/{petId}/visits/new", TEST_OWNER_ID, TEST_PET_ID)
-				.param("name", "George")
-				.param("description", "Visit Description"))
+			.perform(get("/customers/{customerId}/accounts/{accountId}/transactions/new", TEST_CUSTOMER_ID,
+					TEST_ACCOUNT_ID))
+			.andExpect(status().isOk())
+			.andExpect(view().name("accounts/createOrUpdateTransactionForm"));
+	}
+
+	@Test
+	void processNewTransactionFormSuccess() throws Exception {
+		mockMvc.perform(
+				post("/customers/{customerId}/accounts/{accountId}/transactions/new", TEST_CUSTOMER_ID, TEST_ACCOUNT_ID)
+					.param("amount", "100.00")
+					.param("transactionType", "DEPOSIT")
+					.param("description", "Test deposit"))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(view().name("redirect:/owners/{ownerId}"));
+			.andExpect(view().name("redirect:/customers/{customerId}"));
 	}
 
 	@Test
-	void processNewVisitFormHasErrors() throws Exception {
+	void processNewTransactionFormHasErrors() throws Exception {
 		mockMvc
-			.perform(post("/owners/{ownerId}/pets/{petId}/visits/new", TEST_OWNER_ID, TEST_PET_ID).param("name",
-					"George"))
-			.andExpect(model().attributeHasErrors("visit"))
+			.perform(post("/customers/{customerId}/accounts/{accountId}/transactions/new", TEST_CUSTOMER_ID,
+					TEST_ACCOUNT_ID)
+				.param("amount", "100.00"))
+			.andExpect(model().attributeHasErrors("transaction"))
 			.andExpect(status().isOk())
-			.andExpect(view().name("pets/createOrUpdateVisitForm"));
+			.andExpect(view().name("accounts/createOrUpdateTransactionForm"));
 	}
 
 }

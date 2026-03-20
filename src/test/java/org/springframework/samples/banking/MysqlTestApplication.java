@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic;
+package org.springframework.samples.banking;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -25,9 +25,7 @@ import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * PetClinic Spring Boot Application.
- *
- * @author Dave Syer
+ * Banking Spring Boot Application for MySQL testing.
  */
 @Configuration
 public class MysqlTestApplication {
@@ -40,7 +38,7 @@ public class MysqlTestApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(PetClinicApplication.class, "--spring.profiles.active=mysql",
+		SpringApplication.run(BankingApplication.class, "--spring.profiles.active=mysql",
 				"--spring.docker.compose.enabled=false");
 	}
 

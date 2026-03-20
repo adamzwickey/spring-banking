@@ -3,10 +3,10 @@ replicaCount: 1
 image:
   repository: spring-banking
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
-  type: NodePort
+  type: LoadBalancer
   port: 80
   targetPort: 8080
 
@@ -23,6 +23,10 @@ database:
   password: pass
   service:
     port: 5432
+  persistence:
+    enabled: true
+    storageClass: premium-rwo
+    size: 10Gi
 
 resources: {}
 

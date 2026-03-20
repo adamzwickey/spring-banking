@@ -7,6 +7,10 @@ metadata:
     {{- include "banking.labels" . | nindent 4 }}
     app.kubernetes.io/component: database
 spec:
+  {{- if .Values.database.persistence.enabled }}
+  strategy:
+    type: Recreate
+  {{- end }}
   selector:
     matchLabels:
       {{- include "banking.selectorLabels" . | nindent 6 }}
@@ -39,6 +43,11 @@ spec:
           ports:
             - containerPort: {{ .Values.database.service.port }}
               name: postgresql
+          {{- if .Values.database.persistence.enabled }}
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql
+          {{- end }}
           livenessProbe:
             tcpSocket:
               port: postgresql
@@ -48,4 +57,10 @@ spec:
           startupProbe:
             tcpSocket:
               port: postgresql
+      {{- if .Values.database.persistence.enabled }}
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: {{ include "banking.dbFullname" . }}-data
+      {{- end }}
 {{- end }}

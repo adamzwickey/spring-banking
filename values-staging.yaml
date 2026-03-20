@@ -1,0 +1,6 @@
+image:
+  repository: us-east4-docker.pkg.dev/azwickey-ebbebed2/spring-demo/banking
+  tag: v1
+database:
+  persistence:
+    storageClass: premium-rwo-nextgen-data

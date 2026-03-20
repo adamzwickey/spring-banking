@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: banking
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 8080
@@ -34,6 +34,18 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: postgres
+            - name: POSTGRES_URL
+              value: "jdbc:postgresql://demo-db:5432/banking"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: username
+            - name: POSTGRES_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: password
             - name: SERVICE_BINDING_ROOT
               value: /bindings
             - name: SPRING_APPLICATION_JSON
@@ -44,6 +56,12 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /livez

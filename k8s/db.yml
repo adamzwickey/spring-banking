@@ -25,6 +25,19 @@ spec:
     app: demo-db
 
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo-db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: premium-rwo
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,6 +45,8 @@ metadata:
   labels:
     app: demo-db
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: demo-db
@@ -62,6 +77,9 @@ spec:
           ports:
             - containerPort: 5432
               name: postgresql
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql
           livenessProbe:
             tcpSocket:
               port: postgresql
@@ -71,3 +89,7 @@ spec:
           startupProbe:
             tcpSocket:
               port: postgresql
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: demo-db-data

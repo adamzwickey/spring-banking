@@ -21,6 +21,20 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.spring.profile }}
+            {{- if .Values.database.enabled }}
+            - name: POSTGRES_URL
+              value: "jdbc:postgresql://{{ include "banking.dbFullname" . }}:{{ .Values.database.service.port }}/{{ .Values.database.name }}"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "banking.dbFullname" . }}
+                  key: username
+            - name: POSTGRES_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "banking.dbFullname" . }}
+                  key: password
+            {{- end }}
             - name: SERVICE_BINDING_ROOT
               value: /bindings
             - name: SPRING_APPLICATION_JSON

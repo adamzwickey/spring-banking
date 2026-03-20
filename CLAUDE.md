@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Spring Banking is a sample banking application built with Spring Boot 4.0.3. It is adapted from Spring PetClinic and remodeled around a banking domain (customers, accounts, transactions). It uses server-side rendering with Thymeleaf templates and JPA for persistence.
+Spring Banking is a sample banking application built with Spring Boot 3.2.12. It is adapted from Spring PetClinic and remodeled around a banking domain (customers, accounts, transactions). It uses server-side rendering with Thymeleaf templates and JPA for persistence.
 
 ## Build & Run Commands
 

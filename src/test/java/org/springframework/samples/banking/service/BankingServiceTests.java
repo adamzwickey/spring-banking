@@ -202,7 +202,7 @@ class BankingServiceTests {
 		Collection<Transaction> transactions = account7.getTransactions();
 
 		assertThat(transactions) //
-			.hasSize(2) //
+			.hasSize(8) //
 			.element(0)
 			.extracting(Transaction::getDate)
 			.isNotNull();

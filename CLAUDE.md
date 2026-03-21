@@ -16,6 +16,8 @@ Maven is the build system. Java 17+ is required.
 - **Compile CSS (SCSS changes):** `./mvnw package -P css`
 - **Run a single test class:** `./mvnw -Dtest=ClassName test`
 
+Always follow Semantic Versioning, and always verify upgrades with a build command
+
 ## Code Formatting & Linting
 
 The project enforces **Spring Java Format** (v0.0.47) and **Checkstyle** (v12.3.1). Formatting is validated during the Maven `validate` phase. The `nohttp` checkstyle rule ensures no plain `http://` URLs leak into source files.

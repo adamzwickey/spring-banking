@@ -1,43 +1,42 @@
-name: Claude Code Review
+name: Claude PR Analysis
 
 on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
+  workflow_dispatch:
+    inputs:
+      analysis_type:
+        description: "Type of analysis to perform"
+        required: true
+        type: choice
+        options:
+          - summarize-commit
+          - security-review
+        default: "summarize-commit"
 
 jobs:
-  claude-review:
+  analyze-commit:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
-      issues: read
+      issues: write
       id-token: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 2 # Need at least 2 commits to analyze the latest
 
-      - name: Run Claude Code Review
+      - name: Run Claude Analysis
         uses: anthropics/claude-code-action@v1
         with:
-          show_full_output: true
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            Perform a comprehensive code review using subagents for key areas:
+            REPO: ${{ github.repository }}
+            BRANCH: ${{ github.ref_name }}
 
-            - code-quality-reviewer
-            - performance-reviewer
-            - test-coverage-reviewer
-            - documentation-accuracy-reviewer
-            - security-code-reviewer
+            Analyze the latest commit in this repository.
 
-            Instruct each to only provide noteworthy feedback. Once they finish, review the feedback and post only the feedback that you also deem noteworthy.
+            ${{ github.event.inputs.analysis_type == 'summarize-commit' && 'Task: Provide a clear, concise summary of what changed in the latest commit. Include the commit message, files changed, and the purpose of the changes.' || '' }}
 
-            Provide feedback using inline comments for specific issues.
-            Use top-level comments for general observations or praise.
-            Keep feedback concise.
-          claude_args: |
-            --model haiku
-            --allowed_tools 'Bash,Read,Glob,Grep,Edit,Write'
+            ${{ github.event.inputs.analysis_type == 'security-review' && 'Task: Review the latest commit for potential security vulnerabilities. Check for exposed secrets, insecure coding patterns, dependency vulnerabilities, or any other security concerns. Provide specific recommendations if issues are found.' || '' }}

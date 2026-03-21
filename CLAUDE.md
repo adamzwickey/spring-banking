@@ -67,6 +67,7 @@ The project enforces **Spring Java Format** (v0.0.47) and **Checkstyle** (v12.3.
 - Helm chart in `helm/banking/` for templated deployment with a PostgreSQL sidecar
 
 # JIRA Instructions
+Issues, Work Items, and backlog are managed in JIRA
 I am abz-test
 My projects are found at abz-test.atlassian.net
 

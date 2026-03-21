@@ -39,4 +39,5 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          allowed_tools: "Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh pr *),Bash(grep *),Bash(cat *),Bash(find *),Bash(wc *),Bash(head *),Bash(tail *),Bash(python3 *),Read,Glob,Grep,Edit,Write"
+          claude_args: |
+            allowed_tools: "Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh pr *),Bash(grep *),Bash(cat *),Bash(find *),Bash(wc *),Bash(head *),Bash(tail *),Bash(python3 *),Read,Glob,Grep,Edit,Write"

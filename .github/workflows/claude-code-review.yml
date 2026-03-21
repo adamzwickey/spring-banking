@@ -32,7 +32,6 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude Code Review
-        id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           show_full_output: true
@@ -40,6 +39,4 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
-
+          allowed_tools: "Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh pr *),Bash(grep *),Bash(cat *),Bash(find *),Bash(wc *),Bash(head *),Bash(tail *),Bash(python3 *),Read,Glob,Grep,Edit,Write"

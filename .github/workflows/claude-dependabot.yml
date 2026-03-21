@@ -1,11 +1,11 @@
-name: Upgrade Spring Dependencies
+name: Claude Dependabot
 on:
   schedule:
     - cron: '0 0 * * 4' # Runs every Thursday at midnight
   workflow_dispatch:
 
 jobs:
-  upgrade:
+  claude:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,7 +50,7 @@ jobs:
             Do NOT upgrade non-Spring dependencies unless they are required for compatibility with the new Spring versions.
 
           claude_args: |
-            --model sonnet
+            --model haiku
             --dangerously-skip-permissions
             --mcp-config '{"mcpServers": {"context7": {"command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"]}}}'
             --allowedTools "Bash,Read,Write,Edit,mcp__context7__*"

@@ -52,5 +52,6 @@ jobs:
           claude_args: |
             --model haiku
             --dangerously-skip-permissions
+            --max-turns 5
             --mcp-config '{"mcpServers": {"context7": {"command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"]}}}'
             --allowedTools "Bash,Read,Write,Edit,mcp__context7__*"

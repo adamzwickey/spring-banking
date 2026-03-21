@@ -50,8 +50,7 @@ jobs:
             Do NOT upgrade non-Spring dependencies unless they are required for compatibility with the new Spring versions.
 
           claude_args: |
-            --verbose
-            --model haiku
+            --model sonnet
             --dangerously-skip-permissions
             --mcp-config '{"mcpServers": {"context7": {"command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"]}}}'
             --allowedTools "Bash,Read,Write,Edit,mcp__context7__*"

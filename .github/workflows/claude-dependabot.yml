@@ -32,7 +32,9 @@ jobs:
 
             2. **Respect the Spring Boot BOM**: If the project uses spring-boot-starter-parent or spring-boot-dependencies BOM, upgrade the parent/BOM version FIRST. Then only explicitly override individual dependency versions if the project already does so.
 
-            5. **Build verification**: After making changes, run `./mvnw clean verify -B` (batch mode). If the build fails:
+            3. **Evaluate optimizations**: Use the spring-boot-engineer agent to determine if there are additional optizations or changes that are needed to support the upgrade.  It may be helpful to use Context7 to understand new features.  
+
+            4. **Build verification**: After making changes, run `./mvnw clean verify -B` (batch mode). If the build fails:
                - Read the error output carefully
                - Check if it's a breaking API change and attempt to fix it
                - If you cannot resolve the issue, revert that specific upgrade and note it in the PR description

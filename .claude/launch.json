@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spring-boot",
+      "runtimeExecutable": "/Users/azwickey/Downloads/ant/spring-banking/mvnw",
+      "runtimeArgs": ["-f", "/Users/azwickey/Downloads/ant/spring-banking/pom.xml", "spring-boot:run", "-Dmaven.gitcommitid.skip=true"],
+      "port": 8080
+    },
+    {
+      "name": "spring-boot-mysql",
+      "runtimeExecutable": "/Users/azwickey/Downloads/ant/spring-banking/mvnw",
+      "runtimeArgs": ["-f", "/Users/azwickey/Downloads/ant/spring-banking/pom.xml", "spring-boot:run", "-Dmaven.gitcommitid.skip=true", "-Dspring-boot.run.profiles=mysql"],
+      "port": 8080
+    },
+    {
+      "name": "spring-boot-postgres",
+      "runtimeExecutable": "/Users/azwickey/Downloads/ant/spring-banking/mvnw",
+      "runtimeArgs": ["-f", "/Users/azwickey/Downloads/ant/spring-banking/pom.xml", "spring-boot:run", "-Dmaven.gitcommitid.skip=true", "-Dspring-boot.run.profiles=postgres"],
+      "port": 8080
+    }
+  ]
+}

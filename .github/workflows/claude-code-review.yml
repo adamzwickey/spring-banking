@@ -36,8 +36,20 @@ jobs:
         with:
           show_full_output: true
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
-          plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          prompt: |
+            Perform a comprehensive code review using subagents for key areas:
+
+            - code-quality-reviewer
+            - performance-reviewer
+            - test-coverage-reviewer
+            - documentation-accuracy-reviewer
+            - security-code-reviewer
+
+            Instruct each to only provide noteworthy feedback. Once they finish, review the feedback and post only the feedback that you also deem noteworthy.
+
+            Provide feedback using inline comments for specific issues.
+            Use top-level comments for general observations or praise.
+            Keep feedback concise.'/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           claude_args: |
-            allowed_tools: "Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh pr *),Bash(grep *),Bash(cat *),Bash(find *),Bash(wc *),Bash(head *),Bash(tail *),Bash(python3 *),Read,Glob,Grep,Edit,Write"
+            --model haiku
+            --allowed_tools: "Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh pr *),Bash(grep *),Bash(cat *),Bash(find *),Bash(wc *),Bash(head *),Bash(tail *),Bash(python3 *),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Grep,Edit,Write"

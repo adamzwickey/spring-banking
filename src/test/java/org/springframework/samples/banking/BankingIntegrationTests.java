@@ -64,6 +64,19 @@ public class BankingIntegrationTests {
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
+	@Test
+	void exportTransactionsCsv() {
+		RestTemplate template = builder.rootUri("http://localhost:" + port).build();
+		ResponseEntity<String> result = template
+			.exchange(RequestEntity.get("/customers/1/accounts/1/transactions/export").build(), String.class);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getHeaders().getContentType()).isNotNull();
+		assertThat(result.getHeaders().getContentType().toString()).contains("text/csv");
+		assertThat(result.getHeaders().getFirst("Content-Disposition")).contains("attachment");
+		assertThat(result.getHeaders().getFirst("Content-Disposition")).contains("filename=");
+		assertThat(result.getBody()).contains("Date,Type,Amount,Description,Balance After");
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(BankingApplication.class, "--spring.docker.compose.lifecycle-management=NONE");
 	}

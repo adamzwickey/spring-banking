@@ -15,10 +15,14 @@
  */
 package org.springframework.samples.banking.customer;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -28,6 +32,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -106,6 +111,46 @@ class TransactionController {
 
 		redirectAttributes.addFlashAttribute("message", "Your transaction has been recorded");
 		return "redirect:/customers/{customerId}";
+	}
+
+	@GetMapping("/customers/{customerId}/accounts/{accountId}/transactions/export")
+	public void exportTransactionsToCsv(@PathVariable int customerId, @PathVariable int accountId,
+			HttpServletResponse response) throws IOException {
+		Optional<Customer> optionalCustomer = customers.findById(customerId);
+		Customer customer = optionalCustomer.orElseThrow(() -> new IllegalArgumentException(
+				"Customer not found with id: " + customerId + ". Please ensure the ID is correct"));
+
+		Account account = customer.getAccount(accountId);
+		if (account == null) {
+			throw new IllegalArgumentException(
+					"Account with id " + accountId + " not found for customer with id " + customerId + ".");
+		}
+
+		response.setContentType("text/csv");
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+				"attachment; filename=\"transactions_account_" + account.getAccountNumber() + ".csv\"");
+
+		PrintWriter writer = response.getWriter();
+
+		writer.println("Date,Type,Amount,Description,Balance After");
+
+		Collection<Transaction> transactions = account.getTransactions();
+		for (Transaction txn : transactions) {
+			writer.printf("%s,%s,%.2f,%s,%.2f%n", txn.getDate(), txn.getTransactionType(), txn.getAmount(),
+					escapeCsv(txn.getDescription()), txn.getBalanceAfter());
+		}
+
+		writer.flush();
+	}
+
+	private String escapeCsv(String value) {
+		if (value == null) {
+			return "";
+		}
+		if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+			return "\"" + value.replace("\"", "\"\"") + "\"";
+		}
+		return value;
 	}
 
 }

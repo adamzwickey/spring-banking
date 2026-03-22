@@ -79,6 +79,8 @@
                 th:text="#{editAccount}">Edit Account</a></td>
             <td><a th:href="@{__${customer.id}__/accounts/__${account.id}__/transactions/new}"
                 th:text="#{addTransaction}">Add Transaction</a></td>
+            <td><a th:href="@{__${customer.id}__/accounts/__${account.id}__/transactions/export}"
+                th:text="#{exportTransactions}">Export Transactions</a></td>
           </tr>
         </table>
       </td>

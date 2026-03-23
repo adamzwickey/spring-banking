@@ -32,9 +32,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -60,6 +63,9 @@ class AccountControllerTests {
 
 	@MockBean
 	private AccountTypeRepository types;
+
+	@MockBean
+	private TransactionCsvService csvService;
 
 	@BeforeEach
 	void setup() {
@@ -207,6 +213,58 @@ class AccountControllerTests {
 				.andExpect(model().attributeHasFieldErrors("account", "accountNumber"))
 				.andExpect(model().attributeHasFieldErrorCode("account", "accountNumber", "required"))
 				.andExpect(view().name("accounts/createOrUpdateAccountForm"));
+		}
+
+	}
+
+	@Nested
+	class ExportTransactionsToCsv {
+
+		@Test
+		void exportTransactionsSuccess() throws Exception {
+			String csvContent = "Date,Type,Amount,Description,Balance After\n"
+					+ "2025-01-15,DEPOSIT,100.00,Initial deposit,100.00\n";
+			given(csvService.generateCsv(org.mockito.ArgumentMatchers.any())).willReturn(csvContent);
+
+			mockMvc.perform(get("/customers/{customerId}/accounts/{accountId}/transactions/export", TEST_CUSTOMER_ID,
+					TEST_ACCOUNT_ID))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/csv"))
+				.andExpect(header().string("Content-Disposition", "attachment; filename=\"transactions_CHK-10001.csv\""))
+				.andExpect(content().string(csvContent));
+		}
+
+		@Test
+		void exportTransactionsWithMultipleTransactions() throws Exception {
+			String csvContent = "Date,Type,Amount,Description,Balance After\n"
+					+ "2025-01-15,DEPOSIT,100.00,Initial deposit,100.00\n"
+					+ "2025-01-20,WITHDRAWAL,25.50,ATM withdrawal,74.50\n";
+			given(csvService.generateCsv(org.mockito.ArgumentMatchers.any())).willReturn(csvContent);
+
+			String result = mockMvc
+				.perform(get("/customers/{customerId}/accounts/{accountId}/transactions/export", TEST_CUSTOMER_ID,
+						TEST_ACCOUNT_ID))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/csv"))
+				.andReturn()
+				.getResponse()
+				.getContentAsString();
+
+			assertThat(result).contains("Date,Type,Amount,Description,Balance After");
+			assertThat(result).contains("DEPOSIT");
+			assertThat(result).contains("WITHDRAWAL");
+		}
+
+		@Test
+		void exportTransactionsVerifiesFilename() throws Exception {
+			String csvContent = "Date,Type,Amount,Description,Balance After\n";
+			given(csvService.generateCsv(org.mockito.ArgumentMatchers.any())).willReturn(csvContent);
+
+			mockMvc.perform(get("/customers/{customerId}/accounts/{accountId}/transactions/export", TEST_CUSTOMER_ID,
+					TEST_ACCOUNT_ID))
+				.andExpect(status().isOk())
+				.andExpect(header().exists("Content-Disposition"))
+				.andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("CHK-10001")));
 		}
 
 	}

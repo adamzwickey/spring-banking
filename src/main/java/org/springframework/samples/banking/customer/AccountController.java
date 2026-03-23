@@ -36,6 +36,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import jakarta.validation.Valid;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Controller for account operations.
@@ -50,9 +53,13 @@ class AccountController {
 
 	private final AccountTypeRepository types;
 
-	public AccountController(CustomerRepository customers, AccountTypeRepository types) {
+	private final TransactionCsvService csvService;
+
+	public AccountController(CustomerRepository customers, AccountTypeRepository types,
+			TransactionCsvService csvService) {
 		this.customers = customers;
 		this.types = types;
+		this.csvService = csvService;
 	}
 
 	@ModelAttribute("types")
@@ -168,6 +175,24 @@ class AccountController {
 			customer.addAccount(account);
 		}
 		this.customers.save(customer);
+	}
+
+	@GetMapping("/accounts/{accountId}/transactions/export")
+	public ResponseEntity<String> exportTransactions(@ModelAttribute("customer") Customer customer,
+			@ModelAttribute("account") Account account) {
+
+		if (account == null) {
+			throw new IllegalArgumentException("Account not found");
+		}
+
+		String csv = this.csvService.generateCsv(account.getTransactions());
+
+		String filename = "transactions_" + account.getAccountNumber() + ".csv";
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+			.contentType(MediaType.parseMediaType("text/csv"))
+			.body(csv);
 	}
 
 }

@@ -59,7 +59,7 @@
         </dl>
       </td>
       <td valign="top">
-        <table class="table-condensed">
+        <table class="table-condensed" th:id="${'txn-table-' + account.id}">
           <thead>
             <tr>
               <th th:text="#{transactionDate}">Date</th>
@@ -68,7 +68,12 @@
               <th th:text="#{description}">Description</th>
             </tr>
           </thead>
-          <tr th:each="txn : ${account.transactions}">
+          <tr th:each="txn : ${account.transactions}" class="txn-row"
+              th:data-date="${#temporals.format(txn.date, 'yyyy-MM-dd')}"
+              th:data-description="${txn?.description}"
+              th:data-category="${txn.transactionType}"
+              th:data-amount="${txn.amount}"
+              th:data-balance="${txn.balanceAfter}">
             <td th:text="${#temporals.format(txn.date, 'yyyy-MM-dd')}"></td>
             <td th:text="${txn.transactionType}"></td>
             <td th:text="${'$' + #numbers.formatDecimal(txn.amount, 1, 2)}"></td>
@@ -79,6 +84,12 @@
                 th:text="#{editAccount}">Edit Account</a></td>
             <td><a th:href="@{__${customer.id}__/accounts/__${account.id}__/transactions/new}"
                 th:text="#{addTransaction}">Add Transaction</a></td>
+            <td>
+              <button type="button" class="btn btn-sm btn-outline-secondary export-csv-btn"
+                  th:data-account-id="${account.id}"
+                  th:disabled="${#lists.isEmpty(account.transactions)}"
+                  onclick="exportTransactionsCsv(this)">Export to CSV</button>
+            </td>
           </tr>
         </table>
       </td>
@@ -88,11 +99,71 @@
   <script>
     function hideMessages() {
       setTimeout(function () {
-        document.getElementById("success-message").style.display = "none";
-        document.getElementById("error-message").style.display = "none";
+        var successMsg = document.getElementById("success-message");
+        var errorMsg = document.getElementById("error-message");
+        if (successMsg) successMsg.style.display = "none";
+        if (errorMsg) errorMsg.style.display = "none";
       }, 3000);
     }
     hideMessages();
+
+    function escapeCsvField(field) {
+      if (field === null || field === undefined) {
+        return "";
+      }
+      var str = String(field);
+      if (str.indexOf('"') !== -1 || str.indexOf(',') !== -1 || str.indexOf('\n') !== -1 || str.indexOf('\r') !== -1) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    function generateCsv(transactions) {
+      var header = "Date,Description,Category,Amount,Balance";
+      var lines = [header];
+      for (var i = 0; i < transactions.length; i++) {
+        var txn = transactions[i];
+        lines.push([
+          escapeCsvField(txn.date),
+          escapeCsvField(txn.description),
+          escapeCsvField(txn.category),
+          escapeCsvField(txn.amount),
+          escapeCsvField(txn.balance)
+        ].join(","));
+      }
+      return lines.join("\n");
+    }
+
+    function exportTransactionsCsv(button) {
+      var accountId = button.getAttribute("data-account-id");
+      var table = document.getElementById("txn-table-" + accountId);
+      var rows = table.querySelectorAll("tr.txn-row");
+      var transactions = [];
+      for (var i = 0; i < rows.length; i++) {
+        transactions.push({
+          date: rows[i].getAttribute("data-date") || "",
+          description: rows[i].getAttribute("data-description") || "",
+          category: rows[i].getAttribute("data-category") || "",
+          amount: rows[i].getAttribute("data-amount") || "",
+          balance: rows[i].getAttribute("data-balance") || ""
+        });
+      }
+      var csv = generateCsv(transactions);
+      var today = new Date();
+      var yyyy = today.getFullYear();
+      var mm = String(today.getMonth() + 1).padStart(2, "0");
+      var dd = String(today.getDate()).padStart(2, "0");
+      var filename = "transactions_" + yyyy + "-" + mm + "-" + dd + ".csv";
+      var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
   </script>
 
 </body>

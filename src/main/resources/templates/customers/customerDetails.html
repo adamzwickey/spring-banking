@@ -59,7 +59,7 @@
         </dl>
       </td>
       <td valign="top">
-        <table class="table-condensed">
+        <table class="table-condensed transaction-table" th:attr="data-account-id=${account.id}">
           <thead>
             <tr>
               <th th:text="#{transactionDate}">Date</th>
@@ -68,17 +68,31 @@
               <th th:text="#{description}">Description</th>
             </tr>
           </thead>
-          <tr th:each="txn : ${account.transactions}">
-            <td th:text="${#temporals.format(txn.date, 'yyyy-MM-dd')}"></td>
-            <td th:text="${txn.transactionType}"></td>
-            <td th:text="${'$' + #numbers.formatDecimal(txn.amount, 1, 2)}"></td>
-            <td th:text="${txn?.description}"></td>
-          </tr>
+          <tbody class="transaction-data">
+            <tr th:each="txn : ${account.transactions}"
+                th:attr="data-date=${#temporals.format(txn.date, 'yyyy-MM-dd')},
+                         data-type=${txn.transactionType},
+                         data-amount=${txn.amount},
+                         data-balance=${txn.balanceAfter},
+                         data-description=${txn?.description ?: ''}">
+              <td th:text="${#temporals.format(txn.date, 'yyyy-MM-dd')}"></td>
+              <td th:text="${txn.transactionType}"></td>
+              <td th:text="${'$' + #numbers.formatDecimal(txn.amount, 1, 2)}"></td>
+              <td th:text="${txn?.description}"></td>
+            </tr>
+          </tbody>
           <tr>
             <td><a th:href="@{__${customer.id}__/accounts/__${account.id}__/edit}"
                 th:text="#{editAccount}">Edit Account</a></td>
             <td><a th:href="@{__${customer.id}__/accounts/__${account.id}__/transactions/new}"
                 th:text="#{addTransaction}">Add Transaction</a></td>
+            <td>
+              <button type="button" class="btn btn-sm btn-secondary export-csv-btn"
+                      th:attr="data-account-id=${account.id}"
+                      th:disabled="${#lists.isEmpty(account.transactions)}">
+                Export to CSV
+              </button>
+            </td>
           </tr>
         </table>
       </td>
@@ -88,11 +102,103 @@
   <script>
     function hideMessages() {
       setTimeout(function () {
-        document.getElementById("success-message").style.display = "none";
-        document.getElementById("error-message").style.display = "none";
+        var successMsg = document.getElementById("success-message");
+        var errorMsg = document.getElementById("error-message");
+        if (successMsg) successMsg.style.display = "none";
+        if (errorMsg) errorMsg.style.display = "none";
       }, 3000);
     }
     hideMessages();
+
+    /**
+     * Escapes a CSV field according to RFC 4180.
+     * Fields containing commas, quotes, or newlines are enclosed in double quotes.
+     * Quotes within fields are escaped by doubling them.
+     */
+    function escapeCsvField(field) {
+      if (!field) return '';
+
+      var needsQuoting = field.includes(',') || field.includes('"') ||
+                         field.includes('\n') || field.includes('\r');
+
+      if (!needsQuoting) {
+        return field;
+      }
+
+      var escaped = field.replace(/"/g, '""');
+      return '"' + escaped + '"';
+    }
+
+    /**
+     * Generates CSV content from transaction table rows.
+     */
+    function generateTransactionsCsv(tableElement) {
+      var csv = 'Date,Description,Category,Amount,Running Balance\n';
+
+      var rows = tableElement.querySelectorAll('tbody.transaction-data tr');
+      rows.forEach(function(row) {
+        var date = row.getAttribute('data-date') || '';
+        var description = row.getAttribute('data-description') || '';
+        var category = row.getAttribute('data-type') || '';
+        var amount = row.getAttribute('data-amount') || '0.00';
+        var balance = row.getAttribute('data-balance') || '0.00';
+
+        csv += escapeCsvField(date) + ',';
+        csv += escapeCsvField(description) + ',';
+        csv += escapeCsvField(category) + ',';
+        csv += escapeCsvField(amount) + ',';
+        csv += escapeCsvField(balance) + '\n';
+      });
+
+      return csv;
+    }
+
+    /**
+     * Triggers a download of the CSV file.
+     */
+    function downloadCsv(csvContent, filename) {
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement('a');
+
+      if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, filename);
+      } else {
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+
+    /**
+     * Handles export button click.
+     */
+    function handleExportClick(event) {
+      var button = event.target;
+      var accountId = button.getAttribute('data-account-id');
+      var table = document.querySelector('.transaction-table[data-account-id="' + accountId + '"]');
+
+      if (!table) {
+        console.error('Transaction table not found for account ' + accountId);
+        return;
+      }
+
+      var csv = generateTransactionsCsv(table);
+      var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      var filename = 'transactions_' + today + '.csv';
+
+      downloadCsv(csv, filename);
+    }
+
+    // Attach event listeners to all export buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      var exportButtons = document.querySelectorAll('.export-csv-btn');
+      exportButtons.forEach(function(button) {
+        button.addEventListener('click', handleExportClick);
+      });
+    });
   </script>
 
 </body>
